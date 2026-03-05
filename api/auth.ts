@@ -12,17 +12,21 @@
 // auth.ts
 import axios from "axios";
 
-// Configure axios globally
-axios.defaults.withCredentials = true;
-
 export const login = (email: string, password: string) => {
-  return axios.post(`/user/user/login`, { 
-    email, 
-    password 
-  });
+  return axios.post(
+    `/user/user/login`,
+    {
+      email,
+      password,
+    },
+    {
+      withCredentials: true,
+    },
+  );
 };
 
 export const logoutAPI = () => {
-  return axios.delete(`/user/user/logout`, { 
+  return axios.delete(`/user/user/logout`, {
+    withCredentials: true,
   });
 };

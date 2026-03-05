@@ -9,19 +9,17 @@ export const getMembers = async (
   access: string,
   filters: any,
   payload?: any,
+  config?: AxiosRequestConfig,
 ) => {
   const url =
     filters != "" ? `/SecondaryMember/` + `?${filters}` : `/SecondaryMember/`;
-  const res = await api
-    .post(url, payload, {
-      headers: {
-        Authorization: `Bearer ${access}`,
-      },
-    })
-    .then((res) => res)
-    .catch((err) => err);
-
-  return res;
+  return api.post(url, payload, {
+    ...config,
+    headers: {
+      Authorization: `Bearer ${access}`,
+      ...(config?.headers || {}),
+    },
+  });
 };
 
 export const getPrimaryMembers = async (
