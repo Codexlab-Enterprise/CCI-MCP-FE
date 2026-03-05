@@ -1,11 +1,8 @@
 import React from "react";
-import dynamic from "next/dynamic";
 
+import Members from "@/components/admin/members";
+// import Admin from '@/components/admin/admin'
 import DefaultLayout from "@/layouts/default";
-
-const Members = dynamic(() => import("@/components/admin/members"), {
-  ssr: false,
-});
 
 const MembersPage = () => {
   return (

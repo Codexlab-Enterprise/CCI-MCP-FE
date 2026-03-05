@@ -1,11 +1,7 @@
 import React from "react";
-import dynamic from "next/dynamic";
 
+import AddAdmin from "@/components/admin/add-members";
 import DefaultLayout from "@/layouts/default";
-
-const AddAdmin = dynamic(() => import("@/components/admin/add-members"), {
-  ssr: false,
-});
 
 const AddAdminPage = () => {
   return (

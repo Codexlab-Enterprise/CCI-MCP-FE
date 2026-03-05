@@ -1,12 +1,7 @@
 import React from "react";
-import dynamic from "next/dynamic";
 
+import Membership from "@/components/repository/membership/membership";
 import DefaultLayout from "@/layouts/default";
-
-const Membership = dynamic(
-  () => import("@/components/repository/membership/membership"),
-  { ssr: false },
-);
 
 const MembershipPage = () => {
   return (

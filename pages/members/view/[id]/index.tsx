@@ -1,11 +1,7 @@
 import React from "react";
-import dynamic from "next/dynamic";
 
+import ViewMembers from "@/components/admin/view-members";
 import DefaultLayout from "@/layouts/default";
-
-const ViewMembers = dynamic(() => import("@/components/admin/view-members"), {
-  ssr: false,
-});
 
 const ViewPage = () => {
   return (
