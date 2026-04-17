@@ -1,12 +1,29 @@
-FROM  --platform=linux/amd64 node:20-alpine AS builder
+FROM node:20-alpine AS base
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --include=dev
+ENV NEXT_TELEMETRY_DISABLED=1
+
+FROM base AS deps
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
-FROM --platform=linux/amd64 node:20-alpine
-WORKDIR /app
-ENV NODE_ENV production
-COPY --from=builder /app .
+
+FROM base AS runner
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.js ./next.config.js
+
 EXPOSE 3000
-CMD ["npm", "start"]
+
+CMD ["npm", "run", "start"]

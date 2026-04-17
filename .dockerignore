@@ -1,0 +1,17 @@
+.git
+.gitignore
+.next
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.local
+.env*
+!.env.example
+coverage
+dist
+tmp
+*.tsbuildinfo
+.DS_Store
+Backup.zip
