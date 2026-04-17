@@ -1,4 +1,5 @@
-FROM node:20-alpine AS base
+ARG TARGETPLATFORM=linux/amd64
+FROM --platform=$TARGETPLATFORM node:20-alpine AS base
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
