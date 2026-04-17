@@ -8,7 +8,7 @@ import {
   Plus,
   XCircle,
 } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, {
   ChangeEvent,
   useCallback,
@@ -47,11 +47,10 @@ import axios from "axios";
 
 const Members = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
   const pathname = usePathname();
-  const membersAbortRef = useRef<AbortController | null>(null);
-  const syncingFromUrlRef = useRef(false);
-  const searchParamsKey = searchParams.toString();
+  const _window = typeof window !== "undefined" ? window : null;
+  const params = new URLSearchParams(_window?.location?.search);
   // State for filters
   const [filters, setFilters] = useState<any>({
     page: 1,
@@ -90,7 +89,7 @@ const Members = () => {
   // }, [Params]);
 
   // Update URL when filters change
-  const updateURL = useCallback(
+ const updateURL = useCallback(
     (newFilters: typeof filters) => {
       const params = new URLSearchParams();
 
@@ -109,13 +108,13 @@ const Members = () => {
       }
 
       // Update the URL without page refresh
-      router.replace(`${pathname}?${params.toString()}`);
+      router.push(`${pathname}?${params.toString()}`);
     },
     [router, pathname],
   );
 
-  const fetchMembers = useCallback(async (filtersArg: any) => {
-    if (!access) return;
+  const fetchMembers = async (filtersArg: any) => {
+    if (loading) return;
     console.log("inside", filtersArg);
 
     const queryParams = new URLSearchParams();
@@ -137,35 +136,25 @@ const Members = () => {
       membership_Type: filtersArg.membership,
     };
 
-    membersAbortRef.current?.abort();
-    const controller = new AbortController();
-    membersAbortRef.current = controller;
     setLoading(true);
 
-    try {
-      const res = await getMembers(access, queryString, queryBody, {
-        signal: controller.signal,
-        timeout: 30000,
-      });
+    const res = await getMembers(access, queryString, queryBody)
+      .then((res) => res)
+      .catch((err) => err);
 
-      if (res.status === 200) {
-        setData(res?.data?.items ?? []);
-      }
-    } catch (err: any) {
-      if (axios.isCancel(err) || err?.code === "ERR_CANCELED") return;
-      toast.error(err?.response?.data?.message || "Failed to fetch members");
-    } finally {
-      if (!controller.signal.aborted) {
-        setLoading(false);
-      }
+    if (res.status == 200) {
+      setData(res?.data?.items);
     }
-  }, [access]);
+
+    setLoading(false);
+  };
 
   const updateFilter = useCallback(
     (key: keyof typeof filters, value: any) => {
       const newFilters = { ...filters, [key]: value };
 
       console.log("newFilters", newFilters);
+      fetchMembers(newFilters);
       setFilters(newFilters);
       updateURL(newFilters);
     },
@@ -173,52 +162,43 @@ const Members = () => {
   );
 
   useEffect(() => {
-    if (syncingFromUrlRef.current) {
-      syncingFromUrlRef.current = false;
-      return;
-    }
+    // Avoid firing before filters are initialized
+    if (!filters.page || !filters.pageSize) return;
 
-    setFilters((prev: any) => {
-      if (!prev.page || !prev.pageSize) return prev;
+    // Reset to page 1 on a new search
+    const newFilters = {
+      ...filters,
+      search,
+      page: 1,
+    };
 
-      // Reset to page 1 on a new search term.
-      const newFilters = {
-        ...prev,
-        search,
-        page: 1,
-      };
-
-      updateURL(newFilters);
-      return newFilters;
-    });
-  }, [search, updateURL]);
+    setFilters(newFilters);
+    fetchMembers(newFilters);
+    updateURL(newFilters);
+  }, [search]);
 
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(searchParamsKey);
     const payload = {
-      search: urlParams.get("search") || "",
-      page: Number(urlParams.get("page") || 1),
-      pageSize: Number(urlParams.get("pageSize") || 5),
-      category: urlParams.get("category") || "",
-      status: urlParams.get("status") || "",
-      membership: urlParams.get("membership") || "",
+      search: params.get("search") || "",
+      page: params.get("page") || 1,
+      pageSize: params.get("pageSize") || 5,
+      category: params.get("category"),
+      status: params.get("status"),
+      membership: params.get("membership"),
     };
 
-    syncingFromUrlRef.current = true;
     setFilters(payload);
     setSearch(payload.search);
     fetchMembers(payload);
   }, [
-    searchParamsKey,
-    fetchMembers,
+    params.get("page"),
+    params.get("pageSize"),
+    params.get("category"),
+    params.get("status"),
+    params.get("membership"),
+    params.get("search"),
   ]);
-
-  useEffect(() => {
-    return () => {
-      membersAbortRef.current?.abort();
-    };
-  }, []);
   const handleView = (id: string) => {
     router.push(`/members/view/${id}`);
   };

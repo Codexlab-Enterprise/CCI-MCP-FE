@@ -1472,8 +1472,8 @@ const fetchExportData = async () => {
                                       showMonthAndYearPickers
                                       className="w-full"
 
-                                      value={parseDate(installment.DueDate.split("T")[0])}
-                                      onChange={(date) => handleDueDateChange(installment.InstallmentId, date)}
+                                      value={parseDate(installment.DueDate.split("T")[0]) as any}
+                                      onChange={(date: any) => handleDueDateChange(installment.InstallmentId, date)}
                                     />
                                   </I18nProvider>
                                   {isCurrentYear && (
@@ -1623,15 +1623,15 @@ const fetchExportData = async () => {
                                       isDisabled={installment.Status === "PAID"}
                                       showMonthAndYearPickers
                                       className="w-full"
-                                      maxValue={today(getLocalTimeZone())}
+                                      maxValue={today(getLocalTimeZone()) as any}
                                       value={
                                         paidDates[installment.InstallmentId]
-                                          ? parseDate(paidDates[installment.InstallmentId].split("T")[0])
-                                          :(installment.LastInterestCalcDate?parseDate(installment.LastInterestCalcDate.split("T")[0]):( installment.CalculatedAsOf
-                                            ? parseDate(installment.CalculatedAsOf.split("T")[0])
+                                          ? (parseDate(paidDates[installment.InstallmentId].split("T")[0]) as any)
+                                          :(installment.LastInterestCalcDate?(parseDate(installment.LastInterestCalcDate.split("T")[0]) as any):( installment.CalculatedAsOf
+                                            ? (parseDate(installment.CalculatedAsOf.split("T")[0]) as any)
                                             : null))
                                       }
-                                      onChange={(date) => handleDateChange(installment.InstallmentId, date)}
+                                      onChange={(date: any) => handleDateChange(installment.InstallmentId, date)}
                                     />
                                   </I18nProvider>
                                 </td>

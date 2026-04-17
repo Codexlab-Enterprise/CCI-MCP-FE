@@ -267,14 +267,14 @@ const TransactionTable: React.FC<Transaction> = ({
                   showMonthAndYearPickers
                   className="w-full"
                   label={"Date of transaction"}
-                  maxValue={today(getLocalTimeZone())}
+                  maxValue={today(getLocalTimeZone()) as any}
                   value={
                     transactionData.date && transactionData.date !== ""
-                      ? parseDate(transactionData.date)
+                      ? (parseDate(transactionData.date) as any)
                       : null
                   }
-                  onChange={(value) => {
-                    handleTransactionChange("date", value.toString());
+                  onChange={(value: any) => {
+                    handleTransactionChange("date", String(value ?? ""));
                   }}
                 />
               </I18nProvider>

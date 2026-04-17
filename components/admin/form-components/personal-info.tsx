@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import Select from "react-select";
-import { DatePicker } from "@heroui/react";
+import { DatePicker } from "@heroui/date-picker";
 import { I18nProvider } from "@react-aria/i18n";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
 
@@ -783,17 +783,16 @@ console.log("validate email", isValidEmail(formData.email))
               isRequired
               showMonthAndYearPickers
               className="w-full"
-              maxValue={today(getLocalTimeZone())}
+              maxValue={today(getLocalTimeZone()) as any}
               variant="bordered"
-              onChange={(value) => {
-                console.log(value.toString());
-                handleSelectionChange("received_date", value.toString());
+              onChange={(value: any) => {
+                handleSelectionChange("received_date", String(value ?? ""));
               }}
               label={"Received Date"}
               // locale="en-GB"
               value={
                 formData.received_date && formData.received_date != ""
-                  ? parseDate(formData.received_date)
+                  ? (parseDate(formData.received_date) as any)
                   : null
               }
             />
@@ -806,16 +805,15 @@ console.log("validate email", isValidEmail(formData.email))
                 showMonthAndYearPickers
                 className="w-full"
                 label={"Date of birth"}
-                maxValue={today(getLocalTimeZone())}
+                maxValue={today(getLocalTimeZone()) as any}
                 value={
                   formData.date && formData.date != ""
-                    ? parseDate(formData.date)
+                    ? (parseDate(formData.date) as any)
                     : null
                 }
                 variant="bordered"
-                onChange={(value) => {
-                  console.log(value.toString());
-                  handleSelectionChange("date", value.toString());
+                onChange={(value: any) => {
+                  handleSelectionChange("date", String(value ?? ""));
                 }}
               />
             </I18nProvider>
@@ -873,4 +871,3 @@ console.log("validate email", isValidEmail(formData.email))
 };
 
 export default PersonalInfo;
-

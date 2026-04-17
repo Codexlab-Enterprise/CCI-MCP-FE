@@ -1,11 +1,13 @@
 import { Popover, PopoverTrigger, PopoverContent } from "@heroui/popover";
-import { Calendar, DateValue } from "@heroui/calendar";
+import { Calendar, type CalendarProps } from "@heroui/calendar";
 import React from "react";
 import { Input } from "@heroui/input";
 
+type CalendarDateValue = NonNullable<CalendarProps["value"]>;
+
 interface Props {
-  date: DateValue;
-  setDate: (date: DateValue) => void;
+  date: CalendarDateValue;
+  setDate: (date: CalendarDateValue) => void;
 }
 
 const CalendarInput: React.FC<Props> = ({ date, setDate }) => {
