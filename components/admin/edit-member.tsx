@@ -58,12 +58,16 @@ const EditAdmin = () => {
     ? JSON.parse(Cookies.get("user")).accessToken
     : "";
 
+  const normalizeCode = (value: unknown) =>
+    value === null || value === undefined ? "" : String(value).trim();
+
   const fetchMemberByID = async () => {
     setLoading(true);
     // const filter=`search=${memberId}`
     const res = await getMembersByMemberID(access, memberId);
 
-    if (res.status == 200) {
+    try {
+      if (res.status == 200) {
       // console.log('res amount', res?.data?.items?.membership_Amount);
       if (res?.data?.items?.id) {
         setId(res?.data?.items?.id);
@@ -80,16 +84,20 @@ const EditAdmin = () => {
         address: res.data.items?.address,
         typeName: res.data.items?.category,
         type: res.data.items?.CategoryID,
-        associatedMember: res.data.items?.primary_membership_ID,
-        proposalCode: res.data.items?.proposal_code,
-        secondarCode: res.data.items?.secondary_code,
-        pinCode: res.data.items?.pin_code,
+        associatedMember: normalizeCode(res.data.items?.primary_membership_ID),
+        proposalCode: normalizeCode(
+          res.data.items?.proposal_code ?? res.data.items?.proposalCode,
+        ),
+        secondarCode: normalizeCode(
+          res.data.items?.secondary_code ?? res.data.items?.secondaryCode,
+        ),
+        pinCode: normalizeCode(res.data.items?.pin_code),
         image: res.data.items?.image_name,
         country: res.data.items?.country,
         date: res.data?.items?.date_of_birth
           ? format(`${new Date(res.data?.items?.date_of_birth)}`, "yyyy-MM-dd")
           : "",
-        memberShipId: res.data.items?.secondry_membership_ID,
+        memberShipId: normalizeCode(res.data.items?.secondry_membership_ID),
         nationality: res.data.items?.nationality,
         // secondarCode: res.data.items?.secondary_code,
         subTypeName: res.data.items?.membership_Type,
@@ -116,6 +124,8 @@ const EditAdmin = () => {
         // nationality: res.data.items.Nationality
       });
       setStatus(res.data.items?.member_status);
+      }
+    } finally {
       setLoading(false);
     }
   };

@@ -11,7 +11,7 @@ export const getMembers = async (
   payload?: any,
 ) => {
   const url =
-    filters != "" ? `/SecondaryMember/` + `?${filters}` : `/SecondaryMember/`;
+    filters != "" ? `/SecondaryMember` + `?${filters}` : `/SecondaryMember`;
   const res = await api
     .post(url, payload, {
       headers: {

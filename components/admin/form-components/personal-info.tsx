@@ -113,6 +113,14 @@ const PersonalInfo: React.FC<Props> = ({
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
 
+  const normalizeMemberCode = (value: unknown) =>
+    value === null || value === undefined ? "" : String(value).trim();
+
+  const toMemberOption = (member: any) => ({
+    value: String(member?.strMemberCode ?? ""),
+    label: `${member?.strMemberCode ?? ""}-${member?.strFullName ?? ""}`,
+  });
+
   const countryOptions = React.useMemo(
     () =>
       countries.map((country) => ({
@@ -401,78 +409,69 @@ console.log("validate email", isValidEmail(formData.email))
     const fetchData = async () => {
       let counter = 0;
       const updates: any = {};
+      const associatedMember = normalizeMemberCode(formData.associatedMember);
+      const secondaryCode = normalizeMemberCode(formData.secondarCode);
+      const proposalCode = normalizeMemberCode(formData.proposalCode);
 
-      if (formData.associatedMember !== "") {
+      if (associatedMember !== "") {
         setPrimaryMembersLoading(true);
-        const primary: any = await fetchPrimaryValue(formData.associatedMember);
+        const primary: any = await fetchPrimaryValue(associatedMember);
 
         if (primary) {
-          updates.primary = {
-            value: primary.strMemberCode,
-            label: `${primary.strMemberCode}-${primary.strFullName}`,
-          };
-        }
-        setPrimaryMembersLoading(false);
-
-        if (updates.primary) {
+          updates.primary = toMemberOption(primary);
           setSelectedPrimary(updates.primary);
         }
+        setPrimaryMembersLoading(false);
         counter++;
       }
 
-      if (formData.secondarCode !== "") {
+      if (secondaryCode !== "") {
         if (
-          formData.associatedMember !== "" &&
-          formData.secondarCode == formData.associatedMember
+          associatedMember !== "" &&
+          secondaryCode === associatedMember
         ) {
-          updates.secondary = { ...updates.primary };
+          updates.secondary = updates.primary ? { ...updates.primary } : null;
         } else {
           setSecondaryMembersLoading(true);
-          const secondary: any = await fetchPrimaryValue(formData.secondarCode);
+          const secondary: any = await fetchPrimaryValue(secondaryCode);
 
           if (secondary) {
-            updates.secondary = {
-              value: secondary.strMemberCode,
-              label: `${secondary.strMemberCode}-${secondary.strFullName}`,
-            };
+            updates.secondary = toMemberOption(secondary);
           }
           setSecondaryMembersLoading(false);
-
-          if (updates.secondary) {
-            setSelectedSecondary(updates.secondary);
-          }
+        }
+        if (updates.secondary) {
+          setSelectedSecondary(updates.secondary);
         }
         counter++;
       }
 
-      if (formData.proposalCode !== "") {
+      if (proposalCode !== "") {
         if (
-          formData.associatedMember !== "" &&
-          formData.proposalCode == formData.associatedMember
+          associatedMember !== "" &&
+          proposalCode === associatedMember
         ) {
-          updates.proposal = { ...updates.primary };
+          updates.proposal = updates.primary ? { ...updates.primary } : null;
         } else if (
-          formData.secondarCode !== "" &&
-          formData.proposalCode == formData.secondarCode
+          secondaryCode !== "" &&
+          proposalCode === secondaryCode
         ) {
-          updates.proposal = { ...updates.secondary };
+          updates.proposal = updates.secondary ? { ...updates.secondary } : null;
         } else {
           setProposalMembersLoading(true);
-          const proposal: any = await fetchPrimaryValue(formData.proposalCode);
+          const proposal: any = await fetchPrimaryValue(proposalCode);
 
           if (proposal) {
-            updates.proposal = {
-              value: proposal.strMemberCode,
-              label: `${proposal.strMemberCode}-${proposal.strFullName}`,
-            };
+            updates.proposal = toMemberOption(proposal);
           }
           setProposalMembersLoading(false);
-
-          if (updates.proposal) {
-            setSelectedProposal(updates.proposal);
-          }
-          counter++;
         }
+
+        if (updates.proposal) {
+          setSelectedProposal(updates.proposal);
+        }
+
+        counter++;
       }
       // Update selected members in one go
       setSelectedMembers((prev) => ({

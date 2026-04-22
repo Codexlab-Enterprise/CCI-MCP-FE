@@ -45,6 +45,18 @@ import api from "@/utils/axios";
 
 import axios from "axios";
 
+function useDebounced<T>(value: T, delay = 450) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+}
+
 const Members = () => {
   const router = useRouter();
   // const searchParams = useSearchParams();
@@ -53,17 +65,22 @@ const Members = () => {
   const params = new URLSearchParams(_window?.location?.search);
   // State for filters
   const [filters, setFilters] = useState<any>({
-    page: 1,
-    pageSize: 5,
-    category: "",
-    membership: "",
-    status: "",
+    page: Number(params.get("page") || 1),
+    pageSize: Number(params.get("pageSize") || 5),
+    category: params.get("category") || "",
+    membership: params.get("membership") || "",
+    status: params.get("status") || "",
+    search: params.get("search") || "",
+    mcpSearch: params.get("mcb_no") || "",
   });
 
   const [filterModal, setFilterModal] = useState(false);
   const [categories, setCategories] = useState([]);
   const [membership, setMembership] = useState([]);
   const [memberSearch, setMemberSearch] = useState("");
+  const [mcpSearch, setMcpSearch] = useState(
+    params.get("mcb_no") || "",
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const inputRef = useRef(null);
   const [data, setData] = useState([]);
@@ -71,10 +88,13 @@ const Members = () => {
     ? JSON.parse(Cookies.get("user") || "")?.accessToken
     : null;
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(params.get("search") || "");
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState<any>(null);
   const [categorySearch, setCategorySearch] = useState("");
+  const debouncedSearch = useDebounced(search, 450);
+  const debouncedMcpSearch = useDebounced(mcpSearch, 450);
+  const hasInitializedSearchRef = useRef(false);
 
   // Initialize filters from URL on component mount
   // useEffect(() => {
@@ -106,6 +126,9 @@ const Members = () => {
       if (newFilters.search && newFilters.search.trim() !== "") {
         params.set("search", newFilters.search.trim());
       }
+      if (newFilters.mcpSearch && newFilters.mcpSearch.trim() !== "") {
+        params.set("mcp_no", newFilters.mcpSearch.trim());
+      }
 
       // Update the URL without page refresh
       router.push(`${pathname}?${params.toString()}`);
@@ -126,6 +149,9 @@ const Members = () => {
 
     if (filtersArg.search && filtersArg.search.trim() !== "") {
       queryParams.set("search", filtersArg.search.trim());
+    }
+    if (filtersArg.mcpSearch && filtersArg.mcpSearch.trim() !== "") {
+      queryParams.set("mcp_no", filtersArg.mcpSearch.trim());
     }
 
     const queryString = queryParams.toString();
@@ -162,43 +188,33 @@ const Members = () => {
   );
 
   useEffect(() => {
-    // Avoid firing before filters are initialized
+    if (!hasInitializedSearchRef.current) {
+      hasInitializedSearchRef.current = true;
+      fetchMembers(filters);
+
+      return;
+    }
+
     if (!filters.page || !filters.pageSize) return;
 
-    // Reset to page 1 on a new search
+    if (
+      debouncedSearch === (filters.search || "") &&
+      debouncedMcpSearch === (filters.mcpSearch || "")
+    ) {
+      return;
+    }
+
     const newFilters = {
       ...filters,
-      search,
+      search: debouncedSearch,
+      mcpSearch: debouncedMcpSearch,
       page: 1,
     };
 
     setFilters(newFilters);
     fetchMembers(newFilters);
     updateURL(newFilters);
-  }, [search]);
-
-
-  useEffect(() => {
-    const payload = {
-      search: params.get("search") || "",
-      page: params.get("page") || 1,
-      pageSize: params.get("pageSize") || 5,
-      category: params.get("category"),
-      status: params.get("status"),
-      membership: params.get("membership"),
-    };
-
-    setFilters(payload);
-    setSearch(payload.search);
-    fetchMembers(payload);
-  }, [
-    params.get("page"),
-    params.get("pageSize"),
-    params.get("category"),
-    params.get("status"),
-    params.get("membership"),
-    params.get("search"),
-  ]);
+  }, [debouncedSearch, debouncedMcpSearch]);
   const handleView = (id: string) => {
     router.push(`/members/view/${id}`);
   };
@@ -719,6 +735,9 @@ const Members = () => {
           searchLabel={"Search Members"}
           searchQuery={search}
           setsearchQuery={setSearch}
+          secondarySearchLabel={"Search MCP No."}
+          secondarySearchQuery={mcpSearch}
+          setSecondarySearchQuery={setMcpSearch}
         />
       </div>
       <DeleteModal
