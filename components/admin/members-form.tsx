@@ -705,7 +705,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
   return type === "view" ? (
     <FormLayout
-      className="lg:overflow-y-auto"
+      className="lg:overflow-y-auto no-scrollbar"
       currentStep={currentStep}
       description={description}
       isSidebarVisible={false}

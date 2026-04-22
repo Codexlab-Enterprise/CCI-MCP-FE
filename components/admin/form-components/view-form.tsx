@@ -1128,7 +1128,7 @@ const fetchExportData = async () => {
         </div>
       </div>
 
-      <div className="max-h-[75vh] overflow-y-auto no-scrollbar">
+      <div className="max-h-[75vh] overflow-y-auto">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 mb-8">
           <div className="bg-white rounded-xl p-5 shadow-sm border">
