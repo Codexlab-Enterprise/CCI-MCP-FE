@@ -16,7 +16,7 @@ import {
   Trash2,
   User,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DatePicker } from "@heroui/react";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
@@ -77,6 +77,7 @@ const ViewForm: React.FC<Props> = ({
 
   const [isTrnSubmitting, setIsTrnSubmitting] = useState(false);
   const [exportData, setExportData] = useState<any>(null);
+  const transactionSubmitLockRef = useRef(false);
 
   const [isAddTrnModalOpen, setIsAddTrnModalOpen] = useState(false);
   const [transactions, setTransactions] = useState<any>([]);
@@ -345,12 +346,19 @@ const fetchExportData = async () => {
 };
 
   const addTransaction = async () => {
-    setIsTrnSubmitting(true);
-    if (transactionData.amount > formData.amount) {
-      setIsTrnSubmitting(false);
+    if (transactionSubmitLockRef.current) return;
 
-      return toast.error("Amount cannot be greater than total amount");
+    transactionSubmitLockRef.current = true;
+    setIsTrnSubmitting(true);
+
+    if (Number(transactionData.amount) > Number(formData.amount)) {
+      toast.error("Amount cannot be greater than total amount");
+      setIsTrnSubmitting(false);
+      transactionSubmitLockRef.current = false;
+
+      return;
     }
+
     const _transaction = {
       memberId: formData.memberShipId,
       txnDate: transactionData.date,
@@ -361,33 +369,42 @@ const fetchExportData = async () => {
       txnType: transactionData.txnType,
       // paymentStatus: transactionData.paymentStatus,
     };
-    // })
 
     const toastId = toast.loading("Adding transaction...");
-    const res = await addtransaction(_transaction);
 
-    console.log("transacttion response", res);
-    if (res?.status == 200) {
-      toast.success(res?.data?.message, { id: toastId });
-      setIsAddTrnModalOpen(false);
-      fetchtrnsactions();
-      fetchInstallments();
+    try {
+      const res = await addtransaction(_transaction);
+
+      console.log("transacttion response", res);
+      if (res?.status == 200) {
+        toast.success(res?.data?.message, { id: toastId });
+        setIsAddTrnModalOpen(false);
+        fetchtrnsactions();
+        fetchInstallments();
+        setTransactionData({
+          tId: "",
+          amount: "",
+          date: "",
+          mode: "Cash",
+          installment_no: "",
+          txnType: "",
+          paymentStatus: "",
+        });
+      } else {
+        toast.error("Error adding transaction", { id: toastId });
+      }
+    } catch (error: any) {
+      console.error("Add transaction error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Error adding transaction",
+        { id: toastId },
+      );
+    } finally {
       setIsTrnSubmitting(false);
-      setTransactionData({
-        tId: "",
-        amount: "",
-        date: "",
-        mode: "Cash",
-        installment_no: "",
-        txnType: "",
-        paymentStatus: "",
-      });
-    } else {
-      toast.error("Error adding transaction");
-      setIsTrnSubmitting(false);
+      transactionSubmitLockRef.current = false;
     }
-    // consttransactions.push({amount:'',tId:'', date:'', mode:''});
-    // setTransactions([...transactions,{amount:'',tId:'', date:''}])
   };
 
   const updateTransaction = async (transactionId: string, updatedData: any) => {

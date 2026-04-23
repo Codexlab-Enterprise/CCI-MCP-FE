@@ -1,4 +1,6 @@
 import React from "react";
+import { Button } from "@heroui/button";
+import { Loader2 } from "lucide-react";
 
 import InstallmentTable from "./installment-table";
 
@@ -6,6 +8,7 @@ interface Props {
   formData: any;
   handleBack: () => void;
   handleContinue: () => void;
+  loading?: boolean;
   totalAmount: number;
   type: string;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
@@ -16,6 +19,7 @@ const Confirmation: React.FC<Props> = ({
   totalAmount,
   handleBack,
   handleContinue,
+  loading = false,
   type,
 }) => {
   return (
@@ -126,7 +130,8 @@ const Confirmation: React.FC<Props> = ({
       </div>
       <div className="flex justify-between mt-6">
         <button
-          className="text-gray-600 py-2 px-4 rounded-md hover:bg-gray-100 "
+          className="text-gray-600 py-2 px-4 rounded-md hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={loading}
           onClick={handleBack}
         >
           Back
@@ -135,13 +140,16 @@ const Confirmation: React.FC<Props> = ({
           {/* <button onClick={handleSubmitClick} className='text-gray-600 border py-2 px-4 rounded-md hover:bg-gray-100'>
               Save as draft
             </button> */}
-          <button
-            onClick={handleContinue}
-            // disabled={!formData.subType || !formData.type || loading}
-            className="bg-blue-600 text-white py-2 px-4 rounded-md disabled:bg-blue-600/50 hover:bg-blue-700 "
+          <Button
+            className="bg-blue-600 text-white font-medium"
+            isDisabled={loading}
+            startContent={
+              loading ? <Loader2 size={16} className="animate-spin" /> : null
+            }
+            onPress={handleContinue}
           >
-            {type === "edit" ? "Update" : "Add"} Members
-          </button>
+            {loading ? "Please wait..." : `${type === "edit" ? "Update" : "Add"} Members`}
+          </Button>
         </div>
       </div>
     </div>

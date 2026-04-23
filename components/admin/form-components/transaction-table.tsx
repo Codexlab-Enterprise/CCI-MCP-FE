@@ -251,6 +251,7 @@ const TransactionTable: React.FC<Transaction> = ({
         <Button
           color="primary"
           startContent={<PlusCircle size={16} />}
+          isDisabled={isTrnSubmitting}
           onPress={() => setIsAddTrnModalOpen(true)}
           // isDisabled = {totalPayable == 0 }
         >
@@ -426,6 +427,7 @@ const TransactionTable: React.FC<Transaction> = ({
                 className="bg-gray-500 font-semibold text-white"
                 startContent={<X size={16} />}
                 variant="flat"
+                isDisabled={isTrnSubmitting}
                 onPress={
                   isEditMode
                     ? handleCancelEdit
@@ -447,6 +449,7 @@ const TransactionTable: React.FC<Transaction> = ({
                     !transactionData.txnType ||
                     isTrnSubmitting
                   }
+                  isLoading={isTrnSubmitting}
                   startContent={<Save size={16} />}
                   onPress={handleSaveEdit}
                 >
@@ -455,16 +458,16 @@ const TransactionTable: React.FC<Transaction> = ({
               ) : (
                 <Button
                   className="bg-green-600 font-semibold text-white"
-                  // isDisabled={
-                  //   !transactionData.date ||
-                  //   (!transactionData.tId &&
-                  //     transactionData.mode !== "" &&
-                  //     transactionData.mode !== "Cash") ||
-                  //   !transactionData.amount ||
-                  //   !transactionData.txnType ||
-                  //   isTrnSubmitting
-                  // }
-                  startContent={<PlusCircle size={16} />}
+                  isDisabled={
+                    !transactionData.date ||
+                    (!transactionData.tId &&
+                      transactionData.mode !== "" &&
+                      transactionData.mode !== "Cash") ||
+                    !transactionData.amount ||
+                    !transactionData.txnType ||
+                    isTrnSubmitting
+                  }
+                  isLoading={isTrnSubmitting}
                   onPress={addTransaction}
                 >
                   Add Transaction

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
@@ -314,6 +314,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
     Array<{ value: string; label: string }>
   >([]);
   const [loading, setLoading] = useState(false);
+  const submitLockRef = useRef(false);
   const [error, setError] = useState("");
   const [selectedMembers, setSelectedMembers] = useState({
     primary: null,
@@ -433,26 +434,34 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
     if (currentStep === steps.length - 1) {
       // mark as complete and submit
+      if (submitLockRef.current) return;
+
+      submitLockRef.current = true;
       setFormData((p) => ({ ...p, status: "complete" }));
-      if (handleSubmit) {
-        try {
-          setLoading(true);
-          const promise = Promise.resolve(
-            handleSubmit({ ...formData, status: "complete" }),
-          );
+      if (!handleSubmit) {
+        submitLockRef.current = false;
 
-          await toast.promise(promise, {
-            loading: "Please wait...",
-            success: (data: any) => {
-              router.push("/members");
+        return;
+      }
 
-              return data?.data?.message || "Saved";
-            },
-            error: (err: any) => err?.response?.data?.error || "Failed",
-          });
-        } finally {
-          setLoading(false);
-        }
+      try {
+        setLoading(true);
+        const promise = Promise.resolve(
+          handleSubmit({ ...formData, status: "complete" }),
+        );
+
+        await toast.promise(promise, {
+          loading: "Please wait...",
+          success: (data: any) => {
+            router.push("/members");
+
+            return data?.data?.message || "Saved";
+          },
+          error: (err: any) => err?.response?.data?.error || "Failed",
+        });
+      } finally {
+        setLoading(false);
+        submitLockRef.current = false;
       }
     } else {
       setCurrentStep((s) => s + 1);
@@ -670,6 +679,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
               formData={formData}
               handleBack={handleBack}
               handleContinue={handleContinue}
+              loading={loading}
               setFormData={setFormData}
               totalAmount={totalAmount}
               type={type}
