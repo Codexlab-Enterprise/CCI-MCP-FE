@@ -1494,11 +1494,11 @@ const fetchExportData = async () => {
                                       onChange={(date: any) => handleDueDateChange(installment.InstallmentId, date)}
                                     />
                                   </I18nProvider>
-                                  {isCurrentYear && (
+                                  {/* {isCurrentYear && (
                                     <span className=" inline-flex items-center px-2 py-0.5  text-xs font-medium bg-blue-100">
 
                                     </span>
-                                  )}
+                                  )} */}
                                 </td>
                                 <td className="px-2 py-3 text-center whitespace-nowrap">
                                   {formatDisplayDate(installment.PaidInFullDate)}
@@ -1681,7 +1681,7 @@ const fetchExportData = async () => {
               </div>
             )}
 
-            <div className="my-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="my-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
                 <p className="text-sm text-amber-700 font-medium">
                   Paid Installments
@@ -1720,6 +1720,17 @@ const fetchExportData = async () => {
                 <p className="text-xl font-bold">
                   {installmentSummary?.totalGST
                     ? `₹${installmentSummary.totalGST.toLocaleString("en-IN")}`
+                    : "₹0"}
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <p className="text-sm text-gray-700 font-medium">
+                  Outstanding Till Date
+                </p>
+                <p className="text-xl font-bold">
+                  {installmentSummary?.totalOutstanding
+                    ? `₹${installmentSummary.totalOutstanding.toLocaleString("en-IN")}`
                     : "₹0"}
                 </p>
               </div>
