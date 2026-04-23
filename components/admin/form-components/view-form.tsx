@@ -1,7 +1,7 @@
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { cn } from "@heroui/theme";
-import { format, formatDate } from "date-fns";
+import { format } from "date-fns";
 import { debounce } from "lodash";
 import {
   Calendar,
@@ -33,6 +33,7 @@ import {
 import TransactionTable from "./transaction-table";
 
 import api from "@/utils/axios";
+import { formatDisplayDate } from "@/utils/date";
 import {
   addtransaction,
   assignballet,
@@ -1026,7 +1027,7 @@ const fetchExportData = async () => {
             {formData?.received_date != "" && (
               <p className="text-gray-600">
                 Form Received on:{" "}
-                {formatDate(new Date(formData.received_date), "dd-MM-yyyy")}
+                {formatDisplayDate(formData.received_date)}
               </p>
             )}
           </div>
@@ -1105,7 +1106,7 @@ const fetchExportData = async () => {
                         Assign Bellet
                       </ModalHeader>
                       <ModalBody>
-                        <I18nProvider locale="en-IN">
+                        <I18nProvider locale="en-GB">
                           <DatePicker
                             showMonthAndYearPickers
                             className="w-full"
@@ -1354,7 +1355,7 @@ const fetchExportData = async () => {
                       Bellet Date
                     </p>
                     <p className="text-base font-medium">
-                      {formatDate(new Date(formData.balletDate), "dd-MM-yyyy")}
+                      {formatDisplayDate(formData.balletDate)}
                     </p>
                   </div>
                 )}
@@ -1483,7 +1484,7 @@ const fetchExportData = async () => {
                                 </td>
 
                                 <td className="px-2 py-3 text-center">
-                                  <I18nProvider locale="en-IN">
+                                  <I18nProvider locale="en-GB">
                                     <DatePicker
                                       isDisabled={installment.Status === "PAID"}
                                       showMonthAndYearPickers
@@ -1500,9 +1501,7 @@ const fetchExportData = async () => {
                                   )}
                                 </td>
                                 <td className="px-2 py-3 text-center whitespace-nowrap">
-                                  {installment.PaidInFullDate
-                                    ? format(new Date(installment.PaidInFullDate), "dd-MM-yyyy")
-                                    : "--"}
+                                  {formatDisplayDate(installment.PaidInFullDate)}
                                 </td>
                                 <td className="px-2 py-3 text-center">
                                   {installment.Status === "PAID" || installment.Status === "PARTIAL" ? (
@@ -1635,7 +1634,7 @@ const fetchExportData = async () => {
                                 </td>
 
                                 <td className="px-2 py-3 text-center">
-                                  <I18nProvider locale="en-IN">
+                                  <I18nProvider locale="en-GB">
                                     <DatePicker
                                       isDisabled={installment.Status === "PAID"}
                                       showMonthAndYearPickers
@@ -1786,10 +1785,7 @@ const fetchExportData = async () => {
                           </p>
                           <p className="text-sm text-gray-600">
                             Date:{" "}
-                            {format(
-                              new Date(receipt.transactionDate),
-                              "dd-MM-yyyy",
-                            )}
+                            {formatDisplayDate(receipt.transactionDate)}
                           </p>
                         </div>
                         <p className="font-bold text-green-600">
@@ -1887,7 +1883,7 @@ const fetchExportData = async () => {
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <I18nProvider locale="en-IN">
+                            <I18nProvider locale="en-GB">
                               <DatePicker
                                 showMonthAndYearPickers
                                 label="Due Date"

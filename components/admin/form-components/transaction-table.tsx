@@ -2,7 +2,6 @@ import { Button } from "@heroui/button";
 import { DatePicker } from "@heroui/date-picker";
 import { Input } from "@heroui/input";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
-import { format } from "date-fns";
 import { Edit, PlusCircle, Save, Trash2, X } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { I18nProvider } from "@react-aria/i18n";
@@ -10,6 +9,7 @@ import { I18nProvider } from "@react-aria/i18n";
 import SelectField from "@/components/SelectField";
 import ModalComponent from "@/components/Modal";
 import { getSelectInstallment } from "@/api/members";
+import { formatDisplayDate } from "@/utils/date";
 
 interface Transaction {
   transactions: any[];
@@ -227,7 +227,7 @@ const TransactionTable: React.FC<Transaction> = ({
         const pendingAmount =
           inst?.TotalOutstanding || 0;
 
-        const formattedDate = format(new Date(installmentDate), "dd MMM yyyy");
+        const formattedDate = formatDisplayDate(installmentDate);
 
         return {
           key: String(installmentNo), 
@@ -262,7 +262,7 @@ const TransactionTable: React.FC<Transaction> = ({
         <ModalComponent
           content={
             <div className="space-y-4">
-              <I18nProvider locale="en-IN">
+              <I18nProvider locale="en-GB">
                 <DatePicker
                   isRequired
                   showMonthAndYearPickers
@@ -522,7 +522,7 @@ const TransactionTable: React.FC<Transaction> = ({
                     {transaction.installment_no || ""}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {format(new Date(transaction.date), "dd-MM-yyyy")}
+                    {formatDisplayDate(transaction.date)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium">
                     ₹{transaction.amount}

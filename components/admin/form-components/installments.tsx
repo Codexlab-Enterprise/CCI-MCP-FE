@@ -1,8 +1,8 @@
 import { Input } from "@heroui/input";
-import { format } from "date-fns";
 import React from "react";
 
 import InstallmentTable from "./installment-table";
+import { formatDisplayDate } from "@/utils/date";
 
 interface InstallmentsProps {
   formData: any;
@@ -108,16 +108,7 @@ const Installments: React.FC<InstallmentsProps> = ({
               label="First Install. Date*"
               name="dateOfInstallment"
               placeholder="Select first installment date"
-              value={
-                typeof formData.received_date === "string"
-                  ? format(formData.received_date, "dd-MM-yyyy")
-                  : format(formData.received_date, "dd-MM-yyyy")
-                    ? format(
-                        formData.received_date.toISOString().slice(0, 10),
-                        "dd-MM-yyyy",
-                      )
-                    : ""
-              }
+              value={formatDisplayDate(formData.received_date, "")}
               variant="bordered"
               onChange={handleChange}
             />

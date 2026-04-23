@@ -777,7 +777,7 @@ console.log("validate email", isValidEmail(formData.email))
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
-          <I18nProvider locale="en-IN">
+          <I18nProvider locale="en-GB">
             <DatePicker
               isRequired
               showMonthAndYearPickers
@@ -798,11 +798,11 @@ console.log("validate email", isValidEmail(formData.email))
           </I18nProvider>
 
           <div className="flex flex-col w-full">
-            <I18nProvider locale="en-IN">
-              <DatePicker
-                isRequired
-                showMonthAndYearPickers
-                className="w-full"
+          <I18nProvider locale="en-GB">
+            <DatePicker
+              isRequired
+              showMonthAndYearPickers
+              className="w-full"
                 label={"Date of birth"}
                 maxValue={today(getLocalTimeZone()) as any}
                 value={

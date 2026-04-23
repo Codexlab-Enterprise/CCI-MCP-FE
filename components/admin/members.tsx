@@ -20,6 +20,7 @@ import React, {
 import { FaFileExport } from "react-icons/fa6";
 import Cookies from "js-cookie";
 import { cn } from "@heroui/theme";
+import { formatDisplayDate } from "@/utils/date";
 
 import { toast } from "sonner";
 import Actions from "@/components/Actions";
@@ -353,7 +354,7 @@ const Members = () => {
         accessor: "upcoming_installment",
         Cell: ({ row }: { row: any }) =>
           row.original.upcoming_installment
-            ? format(row.original.upcoming_installment, "dd-MM-yyyy")
+            ? formatDisplayDate(row.original.upcoming_installment)
             : "--",
       },
       {
