@@ -2,52 +2,16 @@ import { Trash } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
-import Select from "react-select";
-import { format } from "date-fns";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DateField } from "@/components/ui/date-picker";
+import { Combobox } from "@/components/ui/combobox";
 import api from "@/utils/axios";
 import { countries } from "@/data";
 import SmartAutocomplete from "@/components/elements/SmartAutocomplete";
 import SelectField from "@/components/SelectField";
 import { isValidEmail } from "@/utils/validation";
-
-const customStyles = {
-  control: (base: any, state: any) => ({
-    ...base,
-    minHeight: "40px",
-    borderRadius: "6px",
-    borderWidth: "1px",
-    borderColor: state.isFocused ? "#000000" : "#dcdcdc",
-    boxShadow: state.isFocused ? "0 0 0 1px black" : "none",
-    paddingLeft: "0px",
-    cursor: "pointer",
-  }),
-  singleValue: (base: any) => ({
-    ...base,
-    borderRadius: "9999px",
-    fontWeight: 500,
-    color: "#2d3748",
-    fontSize: "14px",
-  }),
-  option: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? "#3182ce"
-      : state.isFocused
-        ? "#ebf8ff"
-        : "white",
-    color: state.isSelected ? "white" : "#2d3748",
-    borderRadius: "5px",
-    padding: "6px 12px",
-  }),
-  menuPortal: (base: any) => ({
-    ...base,
-    zIndex: 9999,
-  }),
-};
 
 interface Props {
   formData: any;
@@ -123,17 +87,8 @@ const PersonalInfo: React.FC<Props> = ({
     [countries],
   );
 
-  const handlePrimarySearchInput = (
-    value: string,
-    actionMeta: { action: string },
-  ) => {
-    if (actionMeta.action !== "input-change") {
-      return value;
-    }
-
+  const handlePrimarySearchInput = (value: string) => {
     setSearchQuery(value);
-
-    return value;
   };
 
   const isEditing = React.useMemo(
@@ -550,70 +505,55 @@ const PersonalInfo: React.FC<Props> = ({
             description="Search for your nationality"
           />
 
-          <Select
-            isSearchable
-            classNamePrefix="react-select"
-            isLoading={isPrimaryMembersLoading}
-            loadingMessage={() => "Loading member data..."}
-            menuPortalTarget={_document?.body ?? null}
-            options={primaryMembers}
-            placeholder={
-              isPrimaryMembersLoading
-                ? "Loading member data..."
-                : "Select Primary member..."
-            }
-            styles={customStyles}
-            value={selectedPrimary}
-            onChange={(e: any) => {
-              setSelectedPrimary(e);
-              setSelectedMembers((prev: any) => ({ ...prev, primary: e }));
-              handleSelectionChange("associatedMember", e?.value);
+          <Combobox
+            items={primaryMembers}
+            value={selectedPrimary?.value ?? null}
+            loading={isPrimaryMembersLoading}
+            loadingText="Loading member data…"
+            placeholder="Select Primary member…"
+            searchPlaceholder="Search members…"
+            onSearchChange={handlePrimarySearchInput}
+            onChange={(_value, option) => {
+              setSelectedPrimary(option);
+              setSelectedMembers((prev: any) => ({ ...prev, primary: option }));
+              handleSelectionChange("associatedMember", option?.value);
             }}
-            onInputChange={handlePrimarySearchInput}
           />
 
-          <Select
-            isSearchable
-            classNamePrefix="react-select"
-            isLoading={isPrimaryMembersLoading}
-            loadingMessage={() => "Loading member data..."}
-            menuPortalTarget={_document?.body ?? null}
-            options={primaryMembers}
-            placeholder={
-              isPrimaryMembersLoading
-                ? "Loading member data..."
-                : "Select secondary code..."
-            }
-            styles={customStyles}
-            value={selectedSecondary}
-            onChange={(e: any) => {
-              setSelectedSecondary(e);
-              setSelectedMembers((prev: any) => ({ ...prev, secondary: e }));
-              handleSelectionChange("secondarCode", e?.value);
+          <Combobox
+            items={primaryMembers}
+            value={selectedSecondary?.value ?? null}
+            loading={isPrimaryMembersLoading}
+            loadingText="Loading member data…"
+            placeholder="Select secondary code…"
+            searchPlaceholder="Search members…"
+            onSearchChange={handlePrimarySearchInput}
+            onChange={(_value, option) => {
+              setSelectedSecondary(option);
+              setSelectedMembers((prev: any) => ({
+                ...prev,
+                secondary: option,
+              }));
+              handleSelectionChange("secondarCode", option?.value);
             }}
-            onInputChange={handlePrimarySearchInput}
           />
 
-          <Select
-            isSearchable
-            classNamePrefix="react-select"
-            isLoading={isPrimaryMembersLoading}
-            loadingMessage={() => "Loading member data..."}
-            menuPortalTarget={_document?.body ?? null}
-            options={primaryMembers}
-            placeholder={
-              isPrimaryMembersLoading
-                ? "Loading member data..."
-                : "Select proposal code..."
-            }
-            styles={customStyles}
-            value={selectedProposal}
-            onChange={(e: any) => {
-              setSelectedProposal(e);
-              setSelectedMembers((prev: any) => ({ ...prev, proposal: e }));
-              handleSelectionChange("proposalCode", e?.value);
+          <Combobox
+            items={primaryMembers}
+            value={selectedProposal?.value ?? null}
+            loading={isPrimaryMembersLoading}
+            loadingText="Loading member data…"
+            placeholder="Select proposal code…"
+            searchPlaceholder="Search members…"
+            onSearchChange={handlePrimarySearchInput}
+            onChange={(_value, option) => {
+              setSelectedProposal(option);
+              setSelectedMembers((prev: any) => ({
+                ...prev,
+                proposal: option,
+              }));
+              handleSelectionChange("proposalCode", option?.value);
             }}
-            onInputChange={handlePrimarySearchInput}
           />
 
           {renderInput("McbNo", "MCP No.")}

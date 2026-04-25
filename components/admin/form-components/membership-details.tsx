@@ -1,52 +1,13 @@
 import React, { useEffect, useState } from "react";
-import Select from "react-select";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Combobox } from "@/components/ui/combobox";
 import { getCategoryByMemberID } from "@/api/category";
 import { getMemberType } from "@/api/member-type";
 import SmartAutocomplete from "@/components/elements/SmartAutocomplete";
 import { countries } from "@/data";
-
-const customStyles = {
-  control: (base, state) => ({
-    ...base,
-    minHeight: "40px",
-    borderRadius: "6px",
-    borderWidth: "1px",
-    borderColor: state.isFocused ? "#000000" : "#dcdcdc",
-    boxShadow: state.isFocused ? "0 0 0 1px black" : "none",
-    paddingLeft: "0px",
-
-    cursor: "pointer",
-  }),
-  singleValue: (base) => ({
-    ...base,
-    // backgroundColor: '#edf2f7',
-    borderRadius: "9999px",
-    padding: "",
-    fontWeight: 500,
-    color: "#2d3748",
-    fontSize: "14px",
-  }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? "#3182ce"
-      : state.isFocused
-        ? "#ebf8ff"
-        : "white",
-    color: state.isSelected ? "white" : "#2d3748",
-    // zIndex: 9999,
-    borderRadius: "5px",
-    padding: "6px 12px",
-  }),
-  menuPortal: (base) => ({
-    ...base,
-    zIndex: 9999,
-  }),
-};
 
 interface MemberShipDetailsProps {
   currentStep: number;
@@ -214,53 +175,46 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
       <div className="grid grid-cols-2 gap-3 mb-2">
         {/* {type!=='edit'&&( */}
         <>
-          <Select
-            isSearchable
-            classNamePrefix="react-select"
-            isLoading={memberTypeLoading}
-            isDisabled={memberTypeLoading}
-            menuPortalTarget={_document?.body ?? null}
-            options={memberType}
-            placeholder="Select membership..."
-            styles={customStyles}
-            theme={(theme) => ({
-              ...theme,
-              // borderRadius: 0,
-              colors: {
-                ...theme.colors,
-                primary25: "hotpink",
-                primary: "black",
-              },
-            })}
-            value={selectedMembershipType || formData.subType}
-            onChange={(e) => {
-              setSelectedMembershipType(e);
-              handleSelectionChange("subType", e);
-              fetchCategories(e.value);
+          <Combobox
+            items={memberType}
+            value={
+              (selectedMembershipType?.value ?? formData.subType?.value) ||
+              null
+            }
+            loading={memberTypeLoading}
+            disabled={memberTypeLoading}
+            placeholder="Select membership…"
+            searchPlaceholder="Search membership types…"
+            searchValue={memberSearch}
+            onSearchChange={(q) => {
+              setMemberSearch(q);
+              fetchMembershipType(q);
+            }}
+            onChange={(_value, option) => {
+              setSelectedMembershipType(option);
+              handleSelectionChange("subType", option);
+              if (option?.value) fetchCategories(option.value);
             }}
           />
-          <Select
-            isSearchable
-            classNamePrefix="react-select"
-            isLoading={categoryLoading}
-            isDisabled={categoryLoading || !formData.subType}
-            menuPortalTarget={_document?.body ?? null}
-            options={category}
-            placeholder="Select category..."
-            styles={customStyles}
-            theme={(theme) => ({
-              ...theme,
-              // borderRadius: 0,
-              colors: {
-                ...theme.colors,
-                primary25: "hotpink",
-                primary: "black",
-              },
-            })}
-            value={selectedCategory || formData.type}
-            onChange={(e) => {
-              setSelectedCategory(e);
-              handleSelectionChange("type", e);
+          <Combobox
+            items={category}
+            value={
+              (selectedCategory?.value ?? formData.type?.value) || null
+            }
+            loading={categoryLoading}
+            disabled={categoryLoading || !formData.subType}
+            placeholder="Select category…"
+            searchPlaceholder="Search categories…"
+            searchValue={categorySearch}
+            onSearchChange={(q) => {
+              setCategorySearch(q);
+              if (formData.subType?.value) {
+                fetchCategories(formData.subType.value);
+              }
+            }}
+            onChange={(_value, option) => {
+              setSelectedCategory(option);
+              handleSelectionChange("type", option);
             }}
           />
         </>
