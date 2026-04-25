@@ -506,6 +506,8 @@ const PersonalInfo: React.FC<Props> = ({
           />
 
           <Combobox
+            label="Primary Member"
+            required
             items={primaryMembers}
             value={selectedPrimary?.value ?? null}
             loading={isPrimaryMembersLoading}
@@ -521,6 +523,7 @@ const PersonalInfo: React.FC<Props> = ({
           />
 
           <Combobox
+            label="Secondary Code"
             items={primaryMembers}
             value={selectedSecondary?.value ?? null}
             loading={isPrimaryMembersLoading}
@@ -539,6 +542,7 @@ const PersonalInfo: React.FC<Props> = ({
           />
 
           <Combobox
+            label="Proposal Code"
             items={primaryMembers}
             value={selectedProposal?.value ?? null}
             loading={isPrimaryMembersLoading}

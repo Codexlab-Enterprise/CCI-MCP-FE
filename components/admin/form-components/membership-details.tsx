@@ -176,6 +176,8 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
         {/* {type!=='edit'&&( */}
         <>
           <Combobox
+            label="Membership Type"
+            required
             items={memberType}
             value={
               (selectedMembershipType?.value ?? formData.subType?.value) ||
@@ -197,6 +199,8 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
             }}
           />
           <Combobox
+            label="Category"
+            required
             items={category}
             value={
               (selectedCategory?.value ?? formData.type?.value) || null

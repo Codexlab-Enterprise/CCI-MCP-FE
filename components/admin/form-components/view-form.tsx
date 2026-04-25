@@ -1374,7 +1374,7 @@ const fetchExportData = async () => {
                     <thead className="bg-gray-100  text-gray-700 text-sm font-medium sticky top-0 z-20 ">
                       <tr>
                         <th className="px-2 py-3 border-b w-12">#</th>
-                        <th className="px-2 py-3 border-b w-28 whitespace-normal">
+                        <th className="px-2 py-3 border-b w-36 whitespace-normal">
                           Installment Due
                         </th>
                         <th className="px-2 py-3 border-b text-center w-28 whitespace-normal">
@@ -1413,7 +1413,7 @@ const fetchExportData = async () => {
                         <th className="px-2 py-3 border-b text-center w-28 whitespace-normal">
                           Pending Amt.
                         </th>
-                        <th className="px-2 py-3 border-b text-center w-28 whitespace-normal">
+                        <th className="px-2 py-3 border-b text-center w-36 whitespace-normal">
                           Interest Calculation Date
                         </th>
                         <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
@@ -1447,6 +1447,8 @@ const fetchExportData = async () => {
 
                                 <td className="px-2 py-3 text-center">
                                   <DateField
+                                    compact
+                                    showShortcuts={false}
                                     disabled={installment.Status === "PAID"}
                                     value={installment.DueDate?.split("T")[0]}
                                     onChange={(d) =>
@@ -1592,6 +1594,8 @@ const fetchExportData = async () => {
 
                                 <td className="px-2 py-3 text-center">
                                   <DateField
+                                    compact
+                                    showShortcuts={false}
                                     disabled={installment.Status === "PAID"}
                                     maxDate={new Date()}
                                     value={
