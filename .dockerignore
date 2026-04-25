@@ -1,5 +1,7 @@
 .git
 .gitignore
+.gitattributes
+.github
 .next
 node_modules
 npm-debug.log*
@@ -15,3 +17,10 @@ tmp
 *.tsbuildinfo
 .DS_Store
 Backup.zip
+README.md
+LICENSE
+Dockerfile
+.dockerignore
+.vscode
+.idea
+*.md
