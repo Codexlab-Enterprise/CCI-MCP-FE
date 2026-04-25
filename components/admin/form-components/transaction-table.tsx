@@ -1,17 +1,10 @@
 import { Edit, Loader2, PlusCircle, Save, Trash2, X } from "lucide-react";
 import React, { useState, useEffect } from "react";
-import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { DateField } from "@/components/ui/date-picker";
 import SelectField from "@/components/SelectField";
 import ModalComponent from "@/components/Modal";
 import { formatDisplayDate } from "@/utils/date";
@@ -31,58 +24,6 @@ interface Transaction {
   access: string;
   totalPayable: number;
 }
-
-interface DateFieldProps {
-  label?: string;
-  value?: string;
-  onChange: (value: string) => void;
-  required?: boolean;
-  maxDate?: Date;
-}
-
-const DateField: React.FC<DateFieldProps> = ({
-  label,
-  value,
-  onChange,
-  required,
-  maxDate,
-}) => {
-  const [open, setOpen] = useState(false);
-  const dateValue = value ? new Date(value) : undefined;
-
-  return (
-    <div className="flex w-full flex-col gap-1.5">
-      {label && (
-        <Label>
-          {label}
-          {required && <span className="text-destructive">*</span>}
-        </Label>
-      )}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Input
-            readOnly
-            className="cursor-pointer"
-            value={dateValue ? format(dateValue, "yyyy-MM-dd") : ""}
-            placeholder="Select date"
-          />
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto p-0">
-          <Calendar
-            mode="single"
-            selected={dateValue}
-            captionLayout="dropdown"
-            disabled={maxDate ? { after: maxDate } : undefined}
-            onSelect={(d) => {
-              onChange(d ? format(d, "yyyy-MM-dd") : "");
-              setOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-};
 
 const TransactionTable: React.FC<Transaction> = ({
   transactions,

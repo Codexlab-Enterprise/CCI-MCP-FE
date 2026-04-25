@@ -20,8 +20,14 @@ function Calendar({
       classNames={{
         months: "flex flex-col sm:flex-row gap-4",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
+        month_caption: "flex justify-center pt-1 relative items-center h-8",
         caption_label: "text-sm font-medium",
+        dropdowns: "flex items-center gap-1",
+        dropdown_root: "relative inline-flex items-center",
+        dropdown:
+          "absolute inset-0 z-10 cursor-pointer appearance-none bg-transparent opacity-0",
+        years_dropdown: "",
+        months_dropdown: "",
         nav: "flex items-center justify-between absolute inset-x-1 top-1",
         button_previous: cn(
           buttonVariants({ variant: "outline" }),

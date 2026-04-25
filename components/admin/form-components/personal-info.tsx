@@ -7,12 +7,7 @@ import { format } from "date-fns";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DateField } from "@/components/ui/date-picker";
 import api from "@/utils/axios";
 import { countries } from "@/data";
 import SmartAutocomplete from "@/components/elements/SmartAutocomplete";
@@ -74,56 +69,6 @@ interface Props {
   selectedMembers: any;
   setSelectedMembers: any;
 }
-
-interface DateFieldProps {
-  label: string;
-  required?: boolean;
-  value: string;
-  onChange: (value: string) => void;
-  maxDate?: Date;
-}
-
-const DateField: React.FC<DateFieldProps> = ({
-  label,
-  required,
-  value,
-  onChange,
-  maxDate,
-}) => {
-  const [open, setOpen] = useState(false);
-  const dateValue = value ? new Date(value) : undefined;
-
-  return (
-    <div className="flex w-full flex-col gap-1.5">
-      <Label>
-        {label}
-        {required && <span className="text-destructive">*</span>}
-      </Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Input
-            readOnly
-            className="cursor-pointer"
-            value={dateValue ? format(dateValue, "yyyy-MM-dd") : ""}
-            placeholder="Select date"
-          />
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto p-0">
-          <Calendar
-            mode="single"
-            selected={dateValue}
-            captionLayout="dropdown"
-            disabled={maxDate ? { after: maxDate } : undefined}
-            onSelect={(d) => {
-              onChange(d ? format(d, "yyyy-MM-dd") : "");
-              setOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-};
 
 const PersonalInfo: React.FC<Props> = ({
   formData,
@@ -689,6 +634,8 @@ const PersonalInfo: React.FC<Props> = ({
               required
               value={formData.date}
               maxDate={today}
+              fromYear={1925}
+              toYear={today.getFullYear()}
               onChange={(v) => handleSelectionChange("date", v)}
             />
             {error != "" && (age < 10 || age > 21) && (

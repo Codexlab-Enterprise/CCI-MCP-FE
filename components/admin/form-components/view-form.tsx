@@ -20,12 +20,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DateField } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -36,61 +31,6 @@ import {
 import { cn } from "@/lib/utils";
 
 import TransactionTable from "./transaction-table";
-
-interface DateFieldProps {
-  label?: string;
-  value?: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  maxDate?: Date;
-  className?: string;
-  placeholder?: string;
-}
-
-const DateField: React.FC<DateFieldProps> = ({
-  label,
-  value,
-  onChange,
-  disabled,
-  maxDate,
-  className,
-  placeholder = "Select date",
-}) => {
-  const [open, setOpen] = React.useState(false);
-  const dateValue = value ? new Date(value) : undefined;
-
-  return (
-    <div className={cn("flex w-full flex-col gap-1.5", className)}>
-      {label && <Label>{label}</Label>}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            disabled={disabled}
-            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <span className={cn(!dateValue && "text-muted-foreground")}>
-              {dateValue ? format(dateValue, "yyyy-MM-dd") : placeholder}
-            </span>
-            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto p-0">
-          <Calendar
-            mode="single"
-            selected={dateValue}
-            captionLayout="dropdown"
-            disabled={maxDate ? { after: maxDate } : undefined}
-            onSelect={(d) => {
-              onChange(d ? format(d, "yyyy-MM-dd") : "");
-              setOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-};
 
 import api from "@/utils/axios";
 import { formatDisplayDate } from "@/utils/date";
