@@ -6,18 +6,30 @@ import {
   Download,
   EyeIcon,
   FileText,
+  Globe,
+  IdCard,
   Mail,
   MapPin,
   Phone,
   Plus,
+  Receipt,
   Trash2,
   User,
+  Users,
+  Wallet,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DateField } from "@/components/ui/date-picker";
@@ -28,6 +40,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 import TransactionTable from "./transaction-table";
@@ -990,366 +1008,287 @@ const fetchExportData = async () => {
 
 
 
+  const tabValue =
+    currentStep === 1
+      ? "installments"
+      : currentStep === 2
+        ? "transactions"
+        : "overview";
+
+  const handleTabChange = (next: string) => {
+    if (next === "overview") {
+      setCurrentStep(0);
+    } else if (next === "installments") {
+      setCurrentStep(1);
+      fetchInstallments();
+      fetchtrnsactions();
+    } else {
+      setCurrentStep(2);
+    }
+  };
+
+  const isFullyPaid = installmentSummary?.totalOutstanding === 0;
+
+  const fullName = [formData.firstName, formData.midName, formData.lastname]
+    .filter(Boolean)
+    .join(" ");
+  const initials = [formData.firstName, formData.lastname]
+    .filter(Boolean)
+    .map((s: string) => s.charAt(0).toUpperCase())
+    .join("") || "M";
+
+  const InfoRow = ({
+    label,
+    value,
+    icon,
+  }: {
+    label: string;
+    value: React.ReactNode;
+    icon?: React.ReactNode;
+  }) => (
+    <div className="space-y-1">
+      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {icon} {label}
+      </p>
+      <p className="text-sm font-medium text-foreground break-words">
+        {value || "—"}
+      </p>
+    </div>
+  );
+
   return (
-    <div className="">
-      <div className="sticky top-0 overflow-hidden z-20 bg-transparent  shadow-sm flex gap-10 lg:items-center lg:flex-row flex-col justify-between px-4 py-3">
-        <div className="flex items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold">
-              {formData.firstName} {formData.midName} {formData.lastname}
-            </h2>
-            <p className="text-gray-600">Member ID: {formData.memberShipId}</p>
-            {formData?.received_date != "" && (
-              <p className="text-gray-600">
-                Form Received on:{" "}
-                {formatDisplayDate(formData.received_date)}
-              </p>
-            )}
+    <div className="space-y-4 px-1 pb-10">
+      {/* ── Header card ─────────────────────────────────────────── */}
+      <Card className="sticky top-0 z-30 border-border/60 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+        <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary">
+              {initials}
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-2xl font-bold leading-tight">{fullName}</h2>
+                {isFullyPaid ? (
+                  <Badge variant="success">Fully Paid</Badge>
+                ) : (
+                  <Badge variant="warning">Outstanding</Badge>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <IdCard className="h-3.5 w-3.5" /> {formData.memberShipId}
+                </span>
+                {formData?.received_date && (
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarIcon className="h-3.5 w-3.5" /> Received{" "}
+                    {formatDisplayDate(formData.received_date)}
+                  </span>
+                )}
+                {formData.category && (
+                  <Badge variant="outline">{formData.category}</Badge>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex gap-5 items-center" />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            className="rounded-lg"
-            variant={currentStep === 0 ? "default" : "secondary"}
-            onClick={() => {
-              setCurrentStep(0);
-              const element = document.getElementById("personal");
-
-              if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
-              }
-            }}
-          >
-            <User size={16} className="mr-2" />
-            Personal Info
-          </Button>
-          <Button
-            className="rounded-lg"
-            variant={currentStep === 1 ? "default" : "secondary"}
-            onClick={() => {
-              setCurrentStep(1);
-              const element = document.getElementById("installments");
-
-              if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
-              }
-              fetchInstallments();
-              fetchtrnsactions();
-            }}
-          >
-            <CreditCard size={16} className="mr-2" />
-            Installments
-          </Button>
-          <Button
-            className="rounded-lg bg-green-600 text-white hover:bg-green-700"
-            onClick={fetchExportData}
-          >
-            <Download size={16} className="mr-2" />
-            Export Statements
-          </Button>
-          {/* <Button
-            // onPress={} 
-            startContent={<MailIcon size={16} />}
-            className="rounded-lg bg-yellow-600 text-white"
-          >
-            Reminder
-          </Button> */}
-
-          {/* Bellet button only visible if fully paid  */}
-          {installmentSummary?.totalOutstanding === 0 && (
-            <>
-              <Button
-                className="bg-blue-600 rounded-lg text-white hover:bg-blue-700"
-                onClick={() => setIsAssignBelletOpen(true)}
-              >
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={fetchExportData}>
+              <Download className="mr-2 h-4 w-4" /> Export Statement
+            </Button>
+            {isFullyPaid && (
+              <Button onClick={() => setIsAssignBelletOpen(true)}>
                 {formData.secondaryPermaentID
                   ? "Update Bellet"
                   : "Assign Bellet"}
               </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-              <Dialog
-                open={isAssignBelletOpen}
-                onOpenChange={setIsAssignBelletOpen}
-              >
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Assign Bellet</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <DateField
-                      label="Bellet Date"
-                      value={belletDate}
-                      maxDate={new Date()}
-                      onChange={setBelletDate}
-                    />
+      {/* ── Stat cards ──────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Total Amount
+              </p>
+              <p className="mt-1 text-2xl font-bold">
+                ₹
+                {Number(formData.amount || 0).toLocaleString("en-IN")}
+              </p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <CreditCard className="h-5 w-5 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
 
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="permanent-membership-id">
-                        Membership ID
-                      </Label>
-                      <Input
-                        id="permanent-membership-id"
-                        className="w-full"
-                        placeholder="Membership ID"
-                        value={permanentmembershipId}
-                        onChange={(e) =>
-                          setpermanentMembershipId(e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setIsAssignBelletOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleAssignBellet}>Assign</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </>
-          )}
-        </div>
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Paid Amount
+              </p>
+              <p className="mt-1 text-2xl font-bold text-emerald-600">
+                ₹
+                {(installmentSummary?.totalPaid ?? 0).toLocaleString("en-IN")}
+              </p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/40">
+              <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {isFullyPaid ? "Status" : "Pending Amount"}
+              </p>
+              {isFullyPaid ? (
+                <p className="mt-1 text-2xl font-bold text-emerald-600">
+                  Fully Paid
+                </p>
+              ) : (
+                <p className="mt-1 text-2xl font-bold text-amber-600">
+                  ₹
+                  {(installmentSummary?.totalOutstanding ?? 0).toLocaleString(
+                    "en-IN",
+                  )}
+                </p>
+              )}
+            </div>
+            <div
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-full",
+                isFullyPaid
+                  ? "bg-emerald-100 dark:bg-emerald-950/40"
+                  : "bg-amber-100 dark:bg-amber-950/40",
+              )}
+            >
+              <CalendarIcon
+                className={cn(
+                  "h-5 w-5",
+                  isFullyPaid
+                    ? "text-emerald-600 dark:text-emerald-300"
+                    : "text-amber-600 dark:text-amber-300",
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="max-h-[75vh] overflow-y-auto">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 mb-8">
-          <div className="bg-white rounded-xl p-5 shadow-sm border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total Amount
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ₹{formData.amount}
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <CreditCard className="h-5 w-5 text-blue-600" />
-              </div>
-            </div>
-          </div>
+      {/* ── Tabs ────────────────────────────────────────────────── */}
+      <Tabs value={tabValue} onValueChange={handleTabChange}>
+        <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsTrigger value="overview">
+            <User className="mr-2 h-4 w-4" /> Overview
+          </TabsTrigger>
+          <TabsTrigger value="installments">
+            <CreditCard className="mr-2 h-4 w-4" /> Installments
+          </TabsTrigger>
+          <TabsTrigger value="transactions">
+            <Receipt className="mr-2 h-4 w-4" /> Transactions
+          </TabsTrigger>
+        </TabsList>
 
-          <div className="bg-white rounded-xl p-5 shadow-sm border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Paid Amount</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {installmentSummary?.totalPaid
-                    ? `₹${installmentSummary.totalPaid.toLocaleString("en-IN")}`
-                    : "₹0"}
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <FileText className="h-5 w-5 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-5 shadow-sm border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  {installmentSummary?.totalOutstanding === 0
-                    ? "Status"
-                    : "Pending Amount"}
-                </p>
-                {installmentSummary?.totalOutstanding === 0 ? (
-                  <div className="flex items-center gap-2">
-                    <p className="text-2xl font-bold text-green-600">
-                      Fully Paid
-                    </p>
-                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
-                      ✓
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold text-amber-600">
-                    ₹
-                    {installmentSummary?.totalOutstanding?.toLocaleString(
-                      "en-IN",
-                    ) || "0"}
-                  </p>
-                )}
-              </div>
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${installmentSummary?.totalOutstanding === 0
-                  ? "bg-green-100"
-                  : "bg-amber-100"
-                  }`}
-              >
-                <CalendarIcon
-                  className={`h-5 w-5 ${installmentSummary?.totalOutstanding === 0
-                    ? "text-green-600"
-                    : "text-amber-600"
-                    }`}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* )} */}
-        {/* Personal Information Section */}
-        <div
-          className="bg-white rounded-xl shadow-sm border mb-8 overflow-hidden"
-          id="personal"
-        >
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Personal Information
-            </h2>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                  <User size={16} /> Gender
-                </p>
-                <p className="text-base font-medium">{formData.gender}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                  <CalendarIcon size={16} /> Date of Birth
-                </p>
-                <p className="text-base font-medium">
-                  {formatDisplayDate(formData.date)}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">
-                  Age on Received
-                </p>
-                <p className="text-base font-medium">
-                  {calculateDetailedAge(
+        {/* ── Overview tab ────────────────────────────────────────── */}
+        <TabsContent value="overview" className="space-y-4">
+          <Card>
+            <CardHeader className="border-b py-4">
+              <CardTitle className="text-lg">Personal Information</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
+              <InfoRow
+                label="Gender"
+                icon={<User className="h-3.5 w-3.5" />}
+                value={formData.gender}
+              />
+              <InfoRow
+                label="Date of Birth"
+                icon={<CalendarIcon className="h-3.5 w-3.5" />}
+                value={formatDisplayDate(formData.date)}
+              />
+              <InfoRow
+                label="Age on Received"
+                value={
+                  calculateDetailedAge(
                     formData.date,
                     formData.received_date,
-                  ) || "—"}
-                </p>
-              </div>
+                  ) || ""
+                }
+              />
+              <InfoRow
+                label="Current Age"
+                value={calculateDetailedAge(formData.date)}
+              />
+              <InfoRow
+                label="Nationality"
+                icon={<Globe className="h-3.5 w-3.5" />}
+                value={formData.nationality}
+              />
+              <InfoRow
+                label="Email"
+                icon={<Mail className="h-3.5 w-3.5" />}
+                value={formData.email}
+              />
+              <InfoRow
+                label="Phone"
+                icon={<Phone className="h-3.5 w-3.5" />}
+                value={formData.phone}
+              />
+              <InfoRow
+                label="Address"
+                icon={<MapPin className="h-3.5 w-3.5" />}
+                value={formData.address}
+              />
+              <InfoRow label="Country" value={formData.country} />
+              <InfoRow label="Pincode" value={formData.pinCode} />
+              <InfoRow label="MCP No" value={formData.McbNo} />
+            </CardContent>
+          </Card>
 
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">
-                  Current Age
-                </p>
-                <p className="text-base font-medium">
-                  {calculateDetailedAge(formData.date) || "—"}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">Nationality</p>
-                <p className="text-base font-medium">{formData.nationality}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                  <Mail size={16} /> Email
-                </p>
-                <p className="text-base font-medium">{formData.email}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                  <Phone size={16} /> Phone
-                </p>
-                <p className="text-base font-medium">{formData.phone}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                  <MapPin size={16} /> Address
-                </p>
-                <p className="text-base font-medium">
-                  {formData.address || "N/A"}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">Country</p>
-                <p className="text-base font-medium">{formData.country}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">Pincode</p>
-                <p className="text-base font-medium">
-                  {formData.pinCode || "N/A"}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">MCP No</p>
-                <p className="text-base font-medium">
-                  {formData.McbNo || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 pt-6 border-t">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Membership Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">
-                    Associated Member
-                  </p>
-                  <p className="text-base font-medium">
-                    {formData.associatedMember || "N/A"}
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">
-                    Secondary Code
-                  </p>
-                  <p className="text-base font-medium">
-                    {formData.secondarCode || "N/A"}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">
-                    Proposal Code
-                  </p>
-                  <p className="text-base font-medium">
-                    {formData.proposalCode || "N/A"}
-                  </p>
-                </div>
-
-                {formData.secondaryPermaentID &&
-                  formData.secondaryPermaentID !== "N/A" && (
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-500">
-                        Membership ID
-                      </p>
-                      <p className="text-base font-medium">
-                        {formData.secondaryPermaentID}
-                      </p>
-                    </div>
-                  )}
-
-                {formData.balletDate && formData.balletDate !== "N/A" && (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">
-                      Bellet Date
-                    </p>
-                    <p className="text-base font-medium">
-                      {formatDisplayDate(formData.balletDate)}
-                    </p>
-                  </div>
+          <Card>
+            <CardHeader className="border-b py-4">
+              <CardTitle className="text-lg">Membership Information</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
+              <InfoRow
+                label="Associated Member"
+                icon={<Users className="h-3.5 w-3.5" />}
+                value={formData.associatedMember}
+              />
+              <InfoRow
+                label="Secondary Code"
+                value={formData.secondarCode}
+              />
+              <InfoRow
+                label="Proposal Code"
+                value={formData.proposalCode}
+              />
+              {formData.secondaryPermaentID &&
+                formData.secondaryPermaentID !== "N/A" && (
+                  <InfoRow
+                    label="Membership ID"
+                    value={formData.secondaryPermaentID}
+                  />
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
+              {formData.balletDate && formData.balletDate !== "N/A" && (
+                <InfoRow
+                  label="Bellet Date"
+                  value={formatDisplayDate(formData.balletDate)}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <div className="min-h-96 w-full" id="installments">
+        {/* ── Installments tab ─────────────────────────────────────── */}
+        <TabsContent value="installments" className="space-y-4">
+        <div className="min-h-96 w-full">
           <div className="overflow-y-auto pb-10">
             {formData.installmentDetails && (
               <div className="mt-6">
@@ -1732,33 +1671,71 @@ const fetchExportData = async () => {
                 </p>
               </div>
             </div>
-            {/* Transactions section */}
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-              {/* <div className="px-6 py-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-800">Transaction History</h2>
-          </div> */}
-              <div className="p-6">
-                <TransactionTable
-                  addTransaction={addTransaction}
-                  deleteTransaction={deleteTransaction}
-                  handleTransactionChange={handleTransactionChange}
-                  isAddTrnModalOpen={isAddTrnModalOpen}
-                  isTrnSubmitting={isTrnSubmitting}
-                  membershipId={formData.memberShipId}
-                  setIsAddTrnModalOpen={setIsAddTrnModalOpen}
-                  transactionData={transactionData}
-                  transactions={transactions}
-                  updateTransaction={updateTransaction}
-                  access={access}
-                  totalPayable={installmentSummary?.Total_Payable || 0}
-                  installments={getAvailableInstallments()}
-                />
-              </div>
-            </div>
           </div>
         </div>
-      </div>
-      {/* {currentStep === 0 && ( */}
+        </TabsContent>
+
+        {/* ── Transactions tab ─────────────────────────────────────── */}
+        <TabsContent value="transactions">
+          <Card>
+            <CardContent className="p-6">
+              <TransactionTable
+                addTransaction={addTransaction}
+                deleteTransaction={deleteTransaction}
+                handleTransactionChange={handleTransactionChange}
+                isAddTrnModalOpen={isAddTrnModalOpen}
+                isTrnSubmitting={isTrnSubmitting}
+                membershipId={formData.memberShipId}
+                setIsAddTrnModalOpen={setIsAddTrnModalOpen}
+                transactionData={transactionData}
+                transactions={transactions}
+                updateTransaction={updateTransaction}
+                access={access}
+                totalPayable={installmentSummary?.Total_Payable || 0}
+                installments={getAvailableInstallments()}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* ── Bellet Dialog (moved out of header) ──────────────────── */}
+      <Dialog open={isAssignBelletOpen} onOpenChange={setIsAssignBelletOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Bellet</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <DateField
+              label="Bellet Date"
+              value={belletDate}
+              maxDate={new Date()}
+              onChange={setBelletDate}
+            />
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="permanent-membership-id">Membership ID</Label>
+              <Input
+                id="permanent-membership-id"
+                className="w-full"
+                placeholder="Membership ID"
+                value={permanentmembershipId}
+                onChange={(e) => setpermanentMembershipId(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsAssignBelletOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAssignBellet}>Assign</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={isReceiptModalOpen} onOpenChange={setIsReceiptModalOpen}>
         <DialogContent className="max-w-lg">
