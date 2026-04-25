@@ -65,7 +65,7 @@ export default function SmartAutocomplete({
   const displayValue = selectedItem?.label || internalQuery;
 
   return (
-    <div className={cn("flex w-full max-w-xs flex-col gap-1.5", className)}>
+    <div className={cn("flex w-full flex-col gap-1.5", className)}>
       {label && (
         <Label>
           {label}

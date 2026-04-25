@@ -242,7 +242,6 @@ const SmartTables = ({
                         .map((cell, cellKey) => (
                           <TableCell
                             {...cell.getCellProps()}
-                            className="text-muted"
                             key={cellKey}
                           >
                             {cell.render("Cell")}

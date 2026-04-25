@@ -12,11 +12,11 @@ import { countries } from "@/data";
 const customStyles = {
   control: (base, state) => ({
     ...base,
-    minHeight: "55px",
-    borderRadius: "14px",
-    borderWidth: "2px",
+    minHeight: "40px",
+    borderRadius: "6px",
+    borderWidth: "1px",
     borderColor: state.isFocused ? "#000000" : "#dcdcdc",
-    boxShadow: state.isFocused ? "0 0 0 1px black" : "black",
+    boxShadow: state.isFocused ? "0 0 0 1px black" : "none",
     paddingLeft: "0px",
 
     cursor: "pointer",
