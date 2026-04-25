@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { DateField } from "@/components/ui/date-picker";
 import { Combobox } from "@/components/ui/combobox";
 import api from "@/utils/axios";
+import { calculateDetailedAge } from "@/utils/date";
 import { countries } from "@/data";
 import SmartAutocomplete from "@/components/elements/SmartAutocomplete";
 import SelectField from "@/components/SelectField";
@@ -155,59 +156,14 @@ const PersonalInfo: React.FC<Props> = ({
     }
   };
 
-  const calculateDetailedAge = (dobString: string) => {
-    if (!dobString) return "";
-
-    try {
-      const dob = new Date(dobString);
-      const today = new Date();
-
-      let years = today.getFullYear() - dob.getFullYear();
-      let months = today.getMonth() - dob.getMonth();
-
-      if (months < 0) {
-        years--;
-        months += 12;
-      }
-
-      let days = today.getDate() - dob.getDate();
-
-      if (days < 0) {
-        months--;
-        const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-
-        days += prevMonth.getDate();
-
-        if (months < 0) {
-          years--;
-          months += 12;
-        }
-      }
-
-      let ageString = "";
-
-      if (years > 0) ageString += `${years} year${years !== 1 ? "s" : ""} `;
-      if (months > 0) ageString += `${months} month${months !== 1 ? "s" : ""} `;
-      if (days > 0 || ageString === "")
-        ageString += `${days} day${days !== 1 ? "s" : ""}`;
-
-      return ageString.trim();
-    } catch (error) {
-      return "";
-    }
-  };
-
-  const [detailedAge, setDetailedAge] = useState("");
-
-  useEffect(() => {
-    if (formData.date && formData.date !== "") {
-      const calculatedAge = calculateDetailedAge(formData.date);
-
-      setDetailedAge(calculatedAge);
-    } else {
-      setDetailedAge("");
-    }
-  }, [formData.date]);
+  const currentAge = React.useMemo(
+    () => calculateDetailedAge(formData.date),
+    [formData.date],
+  );
+  const ageOnReceived = React.useMemo(
+    () => calculateDetailedAge(formData.date, formData.received_date),
+    [formData.date, formData.received_date],
+  );
 
   const [_document, setDocumentObject] = useState<Document | null>(null);
 
@@ -563,7 +519,7 @@ const PersonalInfo: React.FC<Props> = ({
           {renderInput("McbNo", "MCP No.")}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
           <DateField
             label="Received Date"
             required
@@ -588,13 +544,25 @@ const PersonalInfo: React.FC<Props> = ({
           </div>
 
           <div className="flex w-full flex-col gap-1.5">
-            <Label htmlFor="age">Age</Label>
+            <Label htmlFor="age-on-received">Age on Received</Label>
             <Input
-              id="age"
-              name="age"
+              id="age-on-received"
+              name="age-on-received"
               type="text"
-              value={detailedAge}
-              placeholder="Age"
+              value={ageOnReceived}
+              placeholder="—"
+              readOnly
+            />
+          </div>
+
+          <div className="flex w-full flex-col gap-1.5">
+            <Label htmlFor="current-age">Current Age</Label>
+            <Input
+              id="current-age"
+              name="current-age"
+              type="text"
+              value={currentAge}
+              placeholder="—"
               readOnly
             />
           </div>

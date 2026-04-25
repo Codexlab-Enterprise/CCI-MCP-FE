@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import TransactionTable from "./transaction-table";
 
 import api from "@/utils/axios";
-import { formatDisplayDate } from "@/utils/date";
+import { calculateDetailedAge, formatDisplayDate } from "@/utils/date";
 import {
   addtransaction,
   assignballet,
@@ -1218,13 +1218,29 @@ const fetchExportData = async () => {
                   <CalendarIcon size={16} /> Date of Birth
                 </p>
                 <p className="text-base font-medium">
-                  {new Date(formData.date.toString()).toLocaleDateString()}
+                  {formatDisplayDate(formData.date)}
                 </p>
               </div>
 
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">Age</p>
-                <p className="text-base font-medium">{String(age)}</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Age on Received
+                </p>
+                <p className="text-base font-medium">
+                  {calculateDetailedAge(
+                    formData.date,
+                    formData.received_date,
+                  ) || "—"}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-500">
+                  Current Age
+                </p>
+                <p className="text-base font-medium">
+                  {calculateDetailedAge(formData.date) || "—"}
+                </p>
               </div>
 
               <div className="space-y-1">
