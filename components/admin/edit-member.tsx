@@ -68,7 +68,6 @@ const EditAdmin = () => {
 
     try {
       if (res.status == 200) {
-      // console.log('res amount', res?.data?.items?.membership_Amount);
       if (res?.data?.items?.id) {
         setId(res?.data?.items?.id);
       }

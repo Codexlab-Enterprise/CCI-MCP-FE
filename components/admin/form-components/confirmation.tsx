@@ -105,7 +105,6 @@ const Confirmation: React.FC<Props> = ({
                       currency: 'INR',
                       maximumFractionDigits: 0
                     }).format(installment.amount);
-                    // console.log((installment))
 
                     // const dueDate = new Date(installment.dueDate);
                     // const monthName = dueDate.toLocaleString('default', { month: 'long' });

@@ -28,12 +28,10 @@ const Installments: React.FC<InstallmentsProps> = ({
   handleChange,
   totalAmount,
 }) => {
-  console.log("installments", formData.installmentDetails);
 
   const handleInstallmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    // console.log("testing new value", value)
     // if(value < 1){
     //   return;
     // }

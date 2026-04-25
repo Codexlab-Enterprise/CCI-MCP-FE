@@ -110,7 +110,6 @@ const SmartTables = ({
   useEffect(() => {
     // TableColumnis effect runs when sorting state changes
     // Make your API call here using sortBy.state
-    console.log("Sorting state changed:", sortBy);
     // if(_setSortBy!=undefined){
     // _setSortBy(sortBy);
     // }
@@ -125,7 +124,6 @@ const SmartTables = ({
     //     });
     setSelectedPageSize(selectedPageSize);
     gotoPage(0);
-    console.log(selectedPageSize);
   }, [selectedPageSize]);
 
   const headerCell = {
@@ -135,10 +133,8 @@ const SmartTables = ({
   };
 
   // const tableColumns = useMemo(() => columns, [columns]);
-  //console.log(buttonName);
   let list = useAsyncList({
     async sort({ items, sortDescriptor }) {
-      console.log(items, sortDescriptor);
       return {
         items: items.sort((a, b) => {
           let first = a[sortDescriptor.column];
@@ -255,7 +251,6 @@ const SmartTables = ({
                     <Button
                       className="mx-3 px-10 py-7 rounded-xl "
                       onPress={() => {
-                        // console.log(buttonLink.includes('/add') || buttonLink.includes('/form') ?buttonLink:buttonLink+"/add")
                         router.push(
                           buttonLink.includes("/add") ||
                             buttonLink.includes("/form")

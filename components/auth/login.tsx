@@ -29,16 +29,9 @@ const Login = () => {
 
   //     return;
   //   }
-  //   console.log(formData);
   //   setLoading(true);
   //   const res = await login(formData.email, formData.password);
 
-  //   console.log("=== LOGIN DEBUG INFO ===");
-  // console.log("Status:", res.status);
-  // console.log("Response data:", res.data);
-  // console.log("Response headers:", res.headers);
-  // console.log("Cookies after login:", document.cookie);
-  // console.log("=========================");
 
   //   if (res.status === 200) {
   //     Cookies.set("user", JSON.stringify(res?.data?.user));

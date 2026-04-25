@@ -156,7 +156,6 @@ const ViewForm: React.FC<Props> = ({
         });
       }
     } catch (error: any) {
-      console.error("Error assigning bellet:", error);
       toast.error(error.response?.data?.message || "Error assigning bellet", {
         id: toastId,
       });
@@ -180,7 +179,6 @@ const ViewForm: React.FC<Props> = ({
   // const fetchInstallments = async () => {
   //   const res = await getInstallments(access, formData.memberShipId);
 
-  //   console.log("mapped installments", res.data.summary.Receipt_No_Series);
 
   //   if (res.status === 200 && Array.isArray(res.data.data)) {
   //     const mappedInstallments = res.data.data.map((item: any) => {
@@ -225,14 +223,12 @@ const ViewForm: React.FC<Props> = ({
   //     }));
 
   //     setInstallmentSummary(res.data.summary);
-  //     console.log(res.data.summary);
   //   }
   // };
 
   const fetchInstallments = async () => {
     const res = await getInstallments(access, formData.memberShipId);
 
-    console.log("API response", res.data);
 
     if (res.status === 200 && Array.isArray(res.data.data.rows)) {
       const mappedInstallments = res.data.data.rows.map((item: any) => {
@@ -289,7 +285,6 @@ const ViewForm: React.FC<Props> = ({
       // If you still need summary data, you might need to calculate it
       const summary = calculateSummary(mappedInstallments);
       setInstallmentSummary(summary);
-      console.log("Summary values", summary)
     }
   };
 
@@ -315,15 +310,11 @@ const ViewForm: React.FC<Props> = ({
 const fetchExportData = async () => {
   try {
     if (!formData.memberShipId) {
-      console.error("No membership ID provided");
       return;
     }
 
-    console.log("Fetching export data for:", formData.memberShipId);
     const response = await exportInstallmentData(formData.memberShipId);
 
-    console.log("Response status:", response.status);
-    console.log("Response data:", response.data);
     
     // xlsx download logic
     if (response.status === 200 && response.data instanceof Blob) {
@@ -340,9 +331,6 @@ const fetchExportData = async () => {
     
     setExportData(response.data);
   } catch (error: any) {
-    console.error("Full error:", error);
-    console.error("Error response:", error.response?.data);
-    console.error("Error status:", error.response?.status);
   }
 };
 
@@ -375,10 +363,13 @@ const fetchExportData = async () => {
 
     try {
       const res = await addtransaction(_transaction);
+      const successMessage =
+        res?.data?.message ||
+        res?.data?.data?.message ||
+        "Transaction added successfully";
 
-      console.log("transacttion response", res);
       if (res?.status == 200) {
-        toast.success(res?.data?.message, { id: toastId });
+        toast.success(successMessage, { id: toastId });
         setIsAddTrnModalOpen(false);
         fetchtrnsactions();
         fetchInstallments();
@@ -395,7 +386,6 @@ const fetchExportData = async () => {
         toast.error("Error adding transaction", { id: toastId });
       }
     } catch (error: any) {
-      console.error("Add transaction error:", error);
       toast.error(
         error.response?.data?.message ||
           error.response?.data?.error ||
@@ -426,16 +416,19 @@ const fetchExportData = async () => {
 
       // Make API call to update transaction using axios
       const res = await update_transaction(transactionId, payload);
+      const successMessage =
+        res?.data?.message ||
+        res?.data?.data?.message ||
+        "Transaction updated successfully";
 
       if (res.status === 200) {
-        toast.success("Transaction updated successfully", { id: toastId });
+        toast.success(successMessage, { id: toastId });
         fetchtrnsactions(); // Refresh the transactions list
         fetchInstallments(); // Refresh the installments
       } else {
         toast.error("Failed to update transaction", { id: toastId });
       }
     } catch (error: any) {
-      console.error("Update transaction error:", error);
       toast.error(
         error.response?.data?.message ||
         error.response?.data?.error ||
@@ -459,7 +452,6 @@ const fetchExportData = async () => {
         // await fetchInstallments();
       }
     } catch (error) {
-      console.error('Error updating amount:', error);
       toast.error('Error updating amount');
       // await fetchInstallments();
     }
@@ -519,7 +511,6 @@ const fetchExportData = async () => {
         await fetchInstallments();
       }
     } catch (error) {
-      console.error('Error updating due date:', error);
       toast.error('Error updating due date');
       await fetchInstallments();
     }
@@ -541,7 +532,6 @@ const fetchExportData = async () => {
         toast.error("Failed to delete transaction", { id: toastId });
       }
     } catch (error: any) {
-      console.error("Delete transaction error:", error);
       toast.error(
         error.response?.data?.message ||
         error.response?.data?.error ||
@@ -579,10 +569,8 @@ const fetchExportData = async () => {
       );
 
       fetchInstallments();
-      console.log("Interest calculation successful:", response.data);
       toast.success("Interest calculated successfully!");
     } catch (error) {
-      console.error("Error calculating interest:", error);
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           toast.error("Unauthorized - Please login again");
@@ -608,12 +596,9 @@ const fetchExportData = async () => {
       const apiUrl = `${process.env.NEXT_PUBLIC_INSTALLMENT}/members/${formData.memberShipId}/statement`;
       // const apiUrl = `https://t9hxsxql-3505.inc1.devtunnels.ms/v1/uploadfile/export/secondary-data?membershipId=${formData.memberShipId}`;
 
-      // console.log("Generated API URL:", apiUrl);
-      // console.log(
       //   "Full URL after rewrite should be:",
       //   `${process.env.NEXT_PUBLIC_API_URL_2}${apiUrl}`
       // );
-      // console.log("Form Data memberShipId:", formData.memberShipId);
 
       // 1. Make the API request with proper headers, response type, and query parameter
       const response = await axios({
@@ -648,7 +633,6 @@ const fetchExportData = async () => {
 
       toast.success("Export completed successfully", { id: toastId });
     } catch (error) {
-      console.error("Export error:", error);
 
       // Handle specific error cases
       if (axios.isAxiosError(error)) {
@@ -688,20 +672,17 @@ const fetchExportData = async () => {
           installmentId: item.InstallmentId
         }));
 
-        console.log("mapped transactions", mappedtransctions);
         setTransactions(mappedtransctions);
       } else {
         setTransactions([]);
       }
     } catch (error) {
-      console.error("Error fetching transactions:", error);
       setTransactions([]);
     }
   };
 
   const handleTransactionChange = (field: any, value: string) => {
     // const updatedTransactions = [...transactions];
-    console.log("field", field, value);
 
     setTransactionData((prev) => ({
       ...prev,
@@ -753,7 +734,6 @@ const fetchExportData = async () => {
       }
 
     } catch (error) {
-      console.error('Error updating interest calculation:', error);
 
       // Revert local state on error
       setPaidDates(prev => {
@@ -807,12 +787,10 @@ const fetchExportData = async () => {
           installmentNo: transaction.installment_no,
         }
         ));
-      console.log("transactions", transactions)
 
       setSelectedReceipts(filteredReceipts);
       setIsReceiptModalOpen(true);
     } catch (error) {
-      console.error("Error loading receipts:", error);
       toast.error("Error loading receipt details");
     }
   };
@@ -834,7 +812,6 @@ const fetchExportData = async () => {
         .reduce((acc: number, inst: any) => acc + Number(inst.amount || 0), 0);
 
       setPaidAmount(totalPaid);
-      console.log("totalPaid", totalPaid);
     }
   }, [transactions]);
 
@@ -952,7 +929,6 @@ const fetchExportData = async () => {
         }))
       };
 
-      console.log("Split payload:", payload);
 
       // Call the API to save the splits
       const response = await splitInstallment(selectedInstallmentForSplit.id, payload);
@@ -974,7 +950,6 @@ const fetchExportData = async () => {
       }
 
     } catch (error: any) {
-      console.error("Error splitting installment:", error);
 
       // Handle specific error cases
       if (error.response?.status === 401) {
@@ -1467,7 +1442,6 @@ const fetchExportData = async () => {
                             // Check if this installment is for the current year
                             const isCurrentYear =
                               installment.year == currentYear;
-                            // console.log(installment);
 
                             return (
                               <tr
@@ -1837,15 +1811,12 @@ const fetchExportData = async () => {
                       label="Select Installment to Split"
                       value={selectedInstallmentForSplit ? new Set([String(selectedInstallmentForSplit.id)]) : new Set()}
                       onChange={(keys) => {
-                        console.log("Selected keys:", keys);
                         const selectedKey = Array.from(keys)[0];
-                        console.log("Selected key:", selectedKey);
 
                         if (selectedKey) {
                           const selected = availableInstallments.find(
                             (inst: any) => String(inst.id) === String(selectedKey)
                           );
-                          console.log("Found installment:", selected);
 
                           if (selected) {
                             handleInstallmentChange(selected);

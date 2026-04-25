@@ -380,7 +380,6 @@ export const Sidebar = () => {
     }
     
   } catch (error) {
-    console.error('Logout error:', error);
     
     Cookies.remove("user");
     

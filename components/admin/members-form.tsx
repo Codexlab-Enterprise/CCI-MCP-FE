@@ -483,9 +483,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
   // --- Installment schedule generation -------------------------------------
 
   //   useEffect(()=> {
-  //     console.log("instalmments", formData.installments);
   //     const count = Number(formData.installments || 1);
-  //     console.log("installasldjflkjasdf", count)
   //     if (count == 0 ){
   //       setFormData((prev) => ({
   //         ...prev,

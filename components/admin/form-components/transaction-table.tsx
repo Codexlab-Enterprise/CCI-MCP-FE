@@ -92,16 +92,7 @@ const TransactionTable: React.FC<Transaction> = ({
   //   }
   // }, [isAddTrnModalOpen, membershipId, access]);
 
-  useEffect(() => {
-    console.log(
-      "Current installment_no value:",
-      transactionData.installment_no,
-    );
-    console.log(
-      "Current installment_no as Set:",
-      new Set([transactionData.installment_no || ""]),
-    );
-  }, [transactionData.installment_no]);
+  useEffect(() => {}, [transactionData.installment_no]);
 
   // Reset modal when it closes
   useEffect(() => {
@@ -208,7 +199,6 @@ const TransactionTable: React.FC<Transaction> = ({
   };
 
   const getInstallmentOptions = (installments: any[]) => {
-    console.log("installments", installments);
     if (isLoadingInstallments) {
       return [{ key: "loading", label: "Loading installments..." }];
     }
@@ -239,7 +229,6 @@ const TransactionTable: React.FC<Transaction> = ({
     ];
   };
 
-  console.log("transaction", transactionData.installment_no);
   return (
     <div>
       <div className="flex items-center mb-4 justify-between">

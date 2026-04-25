@@ -104,9 +104,9 @@ const PersonalInfo: React.FC<Props> = ({
   const [selectedProposal, setSelectedProposal] = useState(
     selectedMembers.proposal ?? null,
   );
-  const [primaryOptionLoading, setPrimaryMembersLoading] = useState(false);
-  const [secondaryOptionLoading, setSecondaryMembersLoading] = useState(false);
-  const [proposalOptionLoading, setProposalMembersLoading] = useState(false);
+  const [, setPrimaryMembersLoading] = useState(false);
+  const [, setSecondaryMembersLoading] = useState(false);
+  const [, setProposalMembersLoading] = useState(false);
   const [duplicateCheckLoading, setDuplicateCheckLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
@@ -175,7 +175,6 @@ const PersonalInfo: React.FC<Props> = ({
 
   const checkDuplicateMember = async (field: string, value: string) => {
     if (field === "email" && !isValidEmail(formData.email)) {
-      console.log("validate email", isValidEmail(formData.email));
 
       return;
     }
@@ -198,7 +197,6 @@ const PersonalInfo: React.FC<Props> = ({
     return false;
     //   }
     // } catch (e) {
-    //   console.error("Error checking duplicate member:", e);
     //   return false;
     // } finally {
     //   setDuplicateCheckLoading(false);
@@ -209,7 +207,6 @@ const PersonalInfo: React.FC<Props> = ({
     setEmailError("");
     setPhoneError("");
 
-    console.log("validate email", isValidEmail(formData.email));
 
     if (isEditing) {
       handleContinue();
@@ -242,7 +239,6 @@ const PersonalInfo: React.FC<Props> = ({
 
       // if (!hasDuplicate)
     } catch (error) {
-      console.error("Error checking duplicates:", error);
       toast.error("Error checking member existence");
     } finally {
       setDuplicateCheckLoading(false);
@@ -313,7 +309,6 @@ const PersonalInfo: React.FC<Props> = ({
 
   useEffect(() => {
     setDocumentObject(document);
-    console.log("formData ", formData);
   }, []);
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -371,7 +366,6 @@ const PersonalInfo: React.FC<Props> = ({
 
           // toast.success(result.message || 'File uploaded successfully!');
         } catch (error) {
-          console.error("Error uploading file:", error);
           toast.error("Failed to upload file");
         }
       }
@@ -386,7 +380,6 @@ const PersonalInfo: React.FC<Props> = ({
   };
 
   const fetchPrimaryValue = async (id) => {
-    console.log("id", id);
     const res = await api
       .get("/PrimaryMember/" + id + "")
       .then((res) => res)
@@ -478,9 +471,6 @@ const PersonalInfo: React.FC<Props> = ({
   }, [formData.associatedMember, formData.secondarCode, formData.proposalCode]);
 
   useEffect(() => {
-    console.log("Proposal Code", selectedMembers.proposal);
-    console.log("Associated Member", selectedMembers.primary);
-    console.log("Secondry Code", selectedMembers.secondary);
   }, [selectedMembers]);
 
   return (
