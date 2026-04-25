@@ -1,6 +1,7 @@
-import { Button } from "@heroui/button";
 import { Eye, Pencil, Trash } from "lucide-react";
 import React from "react";
+
+import { Button } from "@/components/ui/button";
 
 interface ActionsProps {
   isView: boolean;
@@ -24,27 +25,27 @@ const Actions: React.FC<ActionsProps> = ({
     <div className="flex space-x-2">
       {isView && (
         <Button
-          className="text-green-900 dark:text-green-200 px-0 w-fit bg-green-100 dark:bg-green-900"
+          className="text-green-900 dark:text-green-200 px-0 w-fit bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800"
           size="sm"
-          onPress={handleView}
+          onClick={handleView}
         >
           <Eye className="h-5 w-5" />
         </Button>
       )}
       {isEdit && (
         <Button
-          className="dark:text-blue-200 text-blue-900  px-0 w-fit bg-blue-100 dark:bg-blue-900"
+          className="text-blue-900 dark:text-blue-200 px-0 w-fit bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800"
           size="sm"
-          onPress={handleEdit}
+          onClick={handleEdit}
         >
           <Pencil className="h-5 w-5" />
         </Button>
       )}
       {isDelete && (
         <Button
-          className="text-red-900 dark:text-red-200 px-0 w-fit bg-red-100 dark:bg-red-900"
+          className="text-red-900 dark:text-red-200 px-0 w-fit bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800"
           size="sm"
-          onPress={handleDelete}
+          onClick={handleDelete}
         >
           <Trash className="h-5 w-5" />
         </Button>

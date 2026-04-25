@@ -1,5 +1,21 @@
-import React from "react";
-import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface AutocompleteOption {
   key: string;
@@ -12,7 +28,6 @@ interface SmartAutocompleteProps {
   label?: string;
   placeholder?: string;
   className?: string;
-  variant?: "flat" | "bordered" | "underlined" | "faded";
   selectedKey?: string;
   inputValue?: string;
   onSelectionChange?: (key: string | null) => void;
@@ -26,11 +41,9 @@ interface SmartAutocompleteProps {
 
 export default function SmartAutocomplete({
   items,
-  value,
   label = "Select an option",
   placeholder = "Search...",
-  className = "max-w-xs",
-  variant = "bordered",
+  className,
   selectedKey,
   inputValue,
   onSelectionChange,
@@ -38,123 +51,94 @@ export default function SmartAutocomplete({
   isDisabled = false,
   isRequired = false,
   errorMessage,
-  description,
 }: SmartAutocompleteProps) {
-  const [fieldState, setFieldState] = React.useState({
-    selectedKey: selectedKey || "",
-    inputValue: inputValue || "",
-    items: items,
-  });
-
-  // Simple filtering function
-  const filterItems = (allItems: AutocompleteOption[], query: string) => {
-    if (!query || query.trim() === "") {
-      return allItems;
-    }
-
-    return allItems.filter(
-      (item) =>
-        item.label.toLowerCase().includes(query.toLowerCase()) ||
-        item.key.toLowerCase().includes(query.toLowerCase()) ||
-        item.value.toLowerCase().includes(query.toLowerCase()),
-    );
-  };
-
-  // Handle selection change
-  const handleSelectionChange = (key: string | null) => {
-    const selectedItem = items.find((option) => option.value === key);
-
-    setFieldState((prevState) => ({
-      inputValue: selectedItem?.label || "",
-      selectedKey: key || "",
-      items: selectedItem ? filterItems(items, selectedItem.label) : items,
-    }));
-
-    // Call parent callback
-    onSelectionChange?.(key);
-  };
-
-  // Handle input change
-  const handleInputChange = (value: string) => {
-    setFieldState((prevState) => ({
-      inputValue: value,
-      selectedKey: value === "" ? "" : prevState.selectedKey,
-      items: filterItems(items, value),
-    }));
-
-    // Call parent callback
-    onInputChange?.(value);
-  };
-
-  // Handle open state change
-  const handleOpenChange = (
-    isOpen: boolean,
-    menuTrigger?: "focus" | "input" | "manual",
-  ) => {
-    if (menuTrigger === "manual" && isOpen) {
-      setFieldState((prevState) => ({
-        ...prevState,
-        items: items, // Show all items when opened manually
-      }));
-    }
-  };
-
-  // Update internal state when props change
-  React.useEffect(() => {
-    if (selectedKey !== undefined) {
-      const selectedItem = items.find(
-        (item) => item.value === selectedKey || item.key === selectedKey,
-      );
-
-      setFieldState((prev) => ({
-        ...prev,
-        selectedKey: selectedKey,
-        inputValue: selectedItem?.label || "",
-      }));
-    }
-  }, [selectedKey, items]);
+  const [open, setOpen] = React.useState(false);
+  const [internalQuery, setInternalQuery] = React.useState(inputValue ?? "");
 
   React.useEffect(() => {
-    if (inputValue !== undefined) {
-      setFieldState((prev) => ({
-        ...prev,
-        inputValue: inputValue,
-        items: filterItems(items, inputValue),
-      }));
-    }
-  }, [inputValue, items]);
+    if (inputValue !== undefined) setInternalQuery(inputValue);
+  }, [inputValue]);
 
-  // Update items when the items prop changes
-  React.useEffect(() => {
-    setFieldState((prev) => ({
-      ...prev,
-      items: filterItems(items, prev.inputValue),
-    }));
-  }, [items]);
+  const selectedItem = items.find(
+    (item) => item.value === selectedKey || item.key === selectedKey,
+  );
+  const displayValue = selectedItem?.label || internalQuery;
 
   return (
-    <Autocomplete
-      allowsCustomValue={false}
-      className={className}
-      inputValue={fieldState.inputValue}
-      isDisabled={isDisabled}
-      isRequired={isRequired}
-      items={fieldState.items}
-      label={label}
-      menuTrigger="input"
-      placeholder={placeholder}
-      selectedKey={fieldState.selectedKey}
-      value={value}
-      variant={variant}
-      onOpenChange={handleOpenChange}
-      onSelectionChange={handleSelectionChange}
-      errorMessage={errorMessage}
-    //   description={description}
-      onInputChange={handleInputChange}
-    >
-      {(item) => (
-        <AutocompleteItem key={item.value}>{item.label}</AutocompleteItem>
+    <div className={cn("flex w-full max-w-xs flex-col gap-1.5", className)}>
+      {label && (
+        <Label>
+          {label}
+          {isRequired && <span className="text-destructive">*</span>}
+        </Label>
       )}
-    </Autocomplete>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={isDisabled}
+            aria-expanded={open}
+            className={cn(
+              "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              errorMessage && "border-destructive",
+            )}
+          >
+            <span
+              className={cn(
+                "truncate",
+                !displayValue && "text-muted-foreground",
+              )}
+            >
+              {displayValue || placeholder}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] p-0"
+          align="start"
+        >
+          <Command>
+            <CommandInput
+              placeholder={placeholder}
+              value={internalQuery}
+              onValueChange={(v) => {
+                setInternalQuery(v);
+                onInputChange?.(v);
+              }}
+            />
+            <CommandList>
+              <CommandEmpty>No options.</CommandEmpty>
+              <CommandGroup>
+                {items.map((item) => (
+                  <CommandItem
+                    key={item.value}
+                    value={item.label}
+                    onSelect={() => {
+                      onSelectionChange?.(item.value);
+                      setInternalQuery(item.label);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedKey === item.value
+                          ? "opacity-100"
+                          : "opacity-0",
+                      )}
+                    />
+                    {item.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      {errorMessage && (
+        <p className="text-xs text-destructive">{errorMessage}</p>
+      )}
+    </div>
   );
 }

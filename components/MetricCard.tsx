@@ -1,5 +1,6 @@
-import { Card, CardBody, CardHeader } from "@heroui/card";
 import React from "react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface MetricCardProps {
   title: string;
@@ -8,12 +9,10 @@ interface MetricCardProps {
 const MetricCard: React.FC<MetricCardProps> = ({ children, title }) => {
   return (
     <Card className="py-1">
-      <CardBody>
-        <CardHeader className="text-md font-semibold p-0 px-0 pb-3">
-          {title}
-        </CardHeader>
-        {children}
-      </CardBody>
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-md font-semibold">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4 pt-0">{children}</CardContent>
     </Card>
   );
 };

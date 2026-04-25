@@ -1,14 +1,19 @@
-import { Button } from "@heroui/button";
-import { DatePicker } from "@heroui/date-picker";
-import { Input } from "@heroui/input";
-import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
-import { Edit, PlusCircle, Save, Trash2, X } from "lucide-react";
+import { Edit, Loader2, PlusCircle, Save, Trash2, X } from "lucide-react";
 import React, { useState, useEffect } from "react";
-import { I18nProvider } from "@react-aria/i18n";
+import { format } from "date-fns";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import SelectField from "@/components/SelectField";
 import ModalComponent from "@/components/Modal";
-import { getSelectInstallment } from "@/api/members";
 import { formatDisplayDate } from "@/utils/date";
 
 interface Transaction {
@@ -27,6 +32,58 @@ interface Transaction {
   totalPayable: number;
 }
 
+interface DateFieldProps {
+  label?: string;
+  value?: string;
+  onChange: (value: string) => void;
+  required?: boolean;
+  maxDate?: Date;
+}
+
+const DateField: React.FC<DateFieldProps> = ({
+  label,
+  value,
+  onChange,
+  required,
+  maxDate,
+}) => {
+  const [open, setOpen] = useState(false);
+  const dateValue = value ? new Date(value) : undefined;
+
+  return (
+    <div className="flex w-full flex-col gap-1.5">
+      {label && (
+        <Label>
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </Label>
+      )}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Input
+            readOnly
+            className="cursor-pointer"
+            value={dateValue ? format(dateValue, "yyyy-MM-dd") : ""}
+            placeholder="Select date"
+          />
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={dateValue}
+            captionLayout="dropdown"
+            disabled={maxDate ? { after: maxDate } : undefined}
+            onSelect={(d) => {
+              onChange(d ? format(d, "yyyy-MM-dd") : "");
+              setOpen(false);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
+
 const TransactionTable: React.FC<Transaction> = ({
   transactions,
   handleTransactionChange,
@@ -38,9 +95,7 @@ const TransactionTable: React.FC<Transaction> = ({
   updateTransaction,
   deleteTransaction,
   membershipId,
-  access,
   installments,
-  totalPayable
 }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
@@ -48,53 +103,8 @@ const TransactionTable: React.FC<Transaction> = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  // const [installments, setInstallments] = useState([]);
-  const [isLoadingInstallments, setIsLoadingInstallments] = useState(false);
+  const [isLoadingInstallments] = useState(false);
 
-  // In your TransactionTable component, update the useEffect:
-  // useEffect(() => {
-  //   const fetchInstallments = async () => {
-  //     setIsLoadingInstallments(true);
-  //     try {
-  //       const res = await getSelectInstallment(access, membershipId);
-
-  //       if (res.status === 200) {
-  //         // Handle different possible response structures
-  //         let installmentsData = [];
-
-  //         if (Array.isArray(res.data)) {
-  //           // If response is directly an array
-  //           installmentsData = res.data;
-  //         } else if (res.data && typeof res.data === "object") {
-  //           // If it's an object but not an array, try to extract any array
-  //           const possibleArrays = Object.values(res.data).filter((val) =>
-  //             Array.isArray(val),
-  //           );
-
-  //           if (possibleArrays.length > 0) {
-  //             installmentsData = possibleArrays[0];
-  //           }
-  //         }
-
-  //         setInstallments(installmentsData);
-  //       } else {
-  //         setInstallments([]);
-  //       }
-  //     } catch (error) {
-  //       setInstallments([]);
-  //     } finally {
-  //       setIsLoadingInstallments(false);
-  //     }
-  //   };
-
-  //   if (isAddTrnModalOpen && membershipId) {
-  //     fetchInstallments();
-  //   }
-  // }, [isAddTrnModalOpen, membershipId, access]);
-
-  useEffect(() => {}, [transactionData.installment_no]);
-
-  // Reset modal when it closes
   useEffect(() => {
     if (!isAddTrnModalOpen) {
       setIsEditMode(false);
@@ -109,60 +119,46 @@ const TransactionTable: React.FC<Transaction> = ({
     setModalTitle("Edit Transaction");
     setIsAddTrnModalOpen(true);
 
-    // Pre-fill the form with transaction data
     handleTransactionChange("date", transaction.date);
     handleTransactionChange("amount", transaction.amount);
     handleTransactionChange("mode", transaction.mode);
     handleTransactionChange("tId", transaction.tId);
-    handleTransactionChange("installment_no", transaction.installment_no || "");
+    handleTransactionChange(
+      "installment_no",
+      transaction.installment_no || "",
+    );
     handleTransactionChange("txnType", transaction.txnType || "");
-    handleTransactionChange("installment_status", transaction.installment_status || "");
+    handleTransactionChange(
+      "installment_status",
+      transaction.installment_status || "",
+    );
   };
 
-  // const handleSaveEdit = () => {
-  //   if (editingTransaction) {
-  //     const updatedData = {
-  //       date: transactionData.date,
-  //       amount: transactionData.amount,
-  //       mode: transactionData.mode,
-  //       tId: transactionData.tId,
-  //       installment_no: transactionData.installment_no,
-  //       txnType: transactionData.txnType,
-  //       installment_status: transactionData.installment_status,
-  //     };
-
-  //     updateTransaction(editingTransaction.id, updatedData);
-  //     setIsAddTrnModalOpen(false);
-  //   }
-  // };
-
   const handleSaveEdit = () => {
-  if (editingTransaction) {
-    // Format date to YYYY-MM-DD
-    const formattedDate = transactionData.date 
-      ? new Date(transactionData.date).toISOString().split('T')[0]
-      : new Date().toISOString().split('T')[0];
+    if (editingTransaction) {
+      const formattedDate = transactionData.date
+        ? new Date(transactionData.date).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
 
-    const updatedData = {
-      memberId: membershipId, 
-      txnDate: formattedDate,
-      amount: Number(transactionData.amount),
-      mode: transactionData.mode,
-      refNo: transactionData.tId,
-      txnType: transactionData.txnType 
-    };
+      const updatedData = {
+        memberId: membershipId,
+        txnDate: formattedDate,
+        amount: Number(transactionData.amount),
+        mode: transactionData.mode,
+        refNo: transactionData.tId,
+        txnType: transactionData.txnType,
+      };
 
-    updateTransaction(editingTransaction.id, updatedData);
-    setIsAddTrnModalOpen(false);
-  }
-};
+      updateTransaction(editingTransaction.id, updatedData);
+      setIsAddTrnModalOpen(false);
+    }
+  };
 
   const handleCancelEdit = () => {
     setIsEditMode(false);
     setEditingTransaction(null);
     setModalTitle("Add Transaction");
     setIsAddTrnModalOpen(false);
-    // Reset form fields
     handleTransactionChange("date", "");
     handleTransactionChange("amount", "");
     handleTransactionChange("mode", "Cash");
@@ -171,23 +167,16 @@ const TransactionTable: React.FC<Transaction> = ({
     handleTransactionChange("txnType", "");
   };
 
-  const openDeleteModal = (transaction: any) => {
-    setTransactionToDelete(transaction);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleDeleteConfirm = async () => {
     if (!transactionToDelete) return;
 
     setIsDeleting(true);
     try {
-      // Call updateTransaction with delete flag
       await updateTransaction(transactionToDelete.id, {
         _action: "delete",
       });
       setIsDeleteModalOpen(false);
       setTransactionToDelete(null);
-    } catch (error) {
     } finally {
       setIsDeleting(false);
     }
@@ -210,20 +199,15 @@ const TransactionTable: React.FC<Transaction> = ({
     return [
       { key: "select", label: "Select Installment" },
       ...installments.map((inst, index) => {
-        const installmentNo =
-          inst?.InstallmentId || index + 1;
-        const installmentDate =
-          inst?.DueDate ||  new Date();
-        const pendingAmount =
-          inst?.TotalOutstanding || 0;
+        const installmentNo = inst?.InstallmentId || index + 1;
+        const installmentDate = inst?.DueDate || new Date();
+        const pendingAmount = inst?.TotalOutstanding || 0;
 
         const formattedDate = formatDisplayDate(installmentDate);
 
         return {
-          key: String(installmentNo), 
-          label: `${formattedDate} • ₹${Number(
-            pendingAmount,
-          ).toLocaleString()}`,
+          key: String(installmentNo),
+          label: `${formattedDate} • ₹${Number(pendingAmount).toLocaleString()}`,
         };
       }),
     ];
@@ -236,136 +220,64 @@ const TransactionTable: React.FC<Transaction> = ({
           Transaction History
         </h2>
 
-        {/* {totalPayable > 0 && ( */}
         <Button
-          color="primary"
-          startContent={<PlusCircle size={16} />}
-          isDisabled={isTrnSubmitting}
-          onPress={() => setIsAddTrnModalOpen(true)}
-          // isDisabled = {totalPayable == 0 }
+          disabled={isTrnSubmitting}
+          onClick={() => setIsAddTrnModalOpen(true)}
         >
+          <PlusCircle size={16} className="mr-2" />
           Add Transaction
         </Button>
-        {/* )} */}
 
         <ModalComponent
           content={
             <div className="space-y-4">
-              <I18nProvider locale="en-GB">
-                <DatePicker
+              <DateField
+                label="Date of transaction"
+                required
+                value={transactionData.date}
+                maxDate={new Date()}
+                onChange={(d) => handleTransactionChange("date", d)}
+              />
+
+              {!isEditMode && (
+                <SelectField
                   isRequired
-                  showMonthAndYearPickers
-                  className="w-full"
-                  label={"Date of transaction"}
-                  maxValue={today(getLocalTimeZone()) as any}
+                  label="Installment"
+                  options={getInstallmentOptions(installments)}
                   value={
-                    transactionData.date && transactionData.date !== ""
-                      ? (parseDate(transactionData.date) as any)
-                      : null
+                    new Set([String(transactionData.installment_no) || ""])
                   }
-                  onChange={(value: any) => {
-                    handleTransactionChange("date", String(value ?? ""));
+                  onChange={(selectedSet: Set<string>) => {
+                    const selectedValue = Array.from(selectedSet)[0];
+
+                    if (
+                      selectedValue &&
+                      selectedValue !== "select" &&
+                      selectedValue !== "none" &&
+                      selectedValue !== "loading"
+                    ) {
+                      handleTransactionChange("installment_no", selectedValue);
+                    } else {
+                      handleTransactionChange("installment_no", "");
+                    }
                   }}
                 />
-              </I18nProvider>
+              )}
 
-              {!isEditMode && <SelectField
-                isRequired
-                label="Installment"
-                options={getInstallmentOptions(installments)}
-                value={new Set([String(transactionData.installment_no) || ""])}
-                onChange={(selectedSet: Set<string>) => {
-                  const selectedValue = Array.from(selectedSet)[0];
-
-                  if (
-                    selectedValue &&
-                    selectedValue !== "select" &&
-                    selectedValue !== "none" &&
-                    selectedValue !== "loading"
-                  ) {
-                    handleTransactionChange("installment_no", selectedValue); // already just the number
-                  } else {
-                    handleTransactionChange("installment_no", "");
+              {!isEditMode && (
+                <SelectField
+                  isRequired
+                  label="Payment Type"
+                  options={["WHOLE", "PRINCIPAL", "INTEREST", "GST"]}
+                  value={new Set([transactionData.txnType || ""])}
+                  onChange={(selectedSet: Set<string>) =>
+                    handleTransactionChange(
+                      "txnType",
+                      Array.from(selectedSet)[0],
+                    )
                   }
-                }}
-              />}
-
-              {/* <div className="space-y-3">
-                <div className="text-sm font-medium text-gray-700">
-                  <span> Payment Type</span>
-                  <span className="text-red-500">*</span>
-                </div>
-
-                <div className="flex gap-6">
-
-                  <label className="inline-flex items-center cursor-pointer group">
-                    <input
-                      checked={transactionData.txnType === "interest"}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      name="payment_type"
-                      type="radio"
-                      value="interest"
-                      onChange={(e) =>
-                        handleTransactionChange("txnType", e.target.value)
-                      }
-                    />
-                    <span className="ml-2 text-sm font-medium text-gray-700">
-                      Interest
-                    </span>
-                  </label>
-
-
-                  <label className="inline-flex items-center cursor-pointer group">
-                    <input
-                      checked={
-                        transactionData.txnType === "installment_amount"
-                      }
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      name="payment_type"
-                      type="radio"
-                      value="installment_amount"
-                      onChange={(e) =>
-                        handleTransactionChange("txnType", e.target.value)
-                      }
-                    />
-                    <span className="ml-2 text-sm font-medium text-gray-700">
-                      Installment Amount
-                    </span>
-                  </label>
-
-                  
-                  <label className="inline-flex items-center cursor-pointer group">
-                    <input
-                      checked={transactionData.txnType === "full"}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      name="payment_type"
-                      type="radio"
-                      value="full"
-                      onChange={(e) =>
-                        handleTransactionChange("txnType", e.target.value)
-                      }
-                    />
-                    <span className="ml-2 text-sm font-medium text-gray-700">
-                      Both
-                    </span>
-                  </label>
-                </div>
-              </div> */}
-
-              {!isEditMode && <SelectField
-              isRequired
-              label="Payment Type"
-              options={[
-                "WHOLE",
-                "PRINCIPAL",
-                "INTEREST",
-                "GST"
-              ]}
-               value={new Set([transactionData.txnType || ""])}
-               onChange={(selectedSet: Set<string>) =>
-                  handleTransactionChange("txnType", Array.from(selectedSet)[0])
-                }
-              />}
+                />
+              )}
 
               <SelectField
                 isRequired
@@ -384,52 +296,59 @@ const TransactionTable: React.FC<Transaction> = ({
                 }
               />
 
-              <Input
-                isRequired
-                className="w-full"
-                label="Amount"
-                placeholder="Amount"
-                type="number"
-                value={transactionData.amount}
-                onValueChange={(value) =>
-                  handleTransactionChange("amount", value)
-                }
-              />
-
-              {transactionData.mode !== "" && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="trn-amount">
+                  Amount <span className="text-destructive">*</span>
+                </Label>
                 <Input
-                  isRequired
+                  id="trn-amount"
                   className="w-full"
-                  label="Transaction ID"
-                  placeholder="Transaction ID"
-                  value={transactionData.tId}
-                  onValueChange={(value) =>
-                    handleTransactionChange("tId", value)
+                  placeholder="Amount"
+                  type="number"
+                  value={transactionData.amount}
+                  onChange={(e) =>
+                    handleTransactionChange("amount", e.target.value)
                   }
                 />
+              </div>
+
+              {transactionData.mode !== "" && (
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="trn-tid">
+                    Transaction ID <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="trn-tid"
+                    className="w-full"
+                    placeholder="Transaction ID"
+                    value={transactionData.tId}
+                    onChange={(e) =>
+                      handleTransactionChange("tId", e.target.value)
+                    }
+                  />
+                </div>
               )}
             </div>
           }
           footerContent={
             <>
               <Button
-                className="bg-gray-500 font-semibold text-white"
-                startContent={<X size={16} />}
-                variant="flat"
-                isDisabled={isTrnSubmitting}
-                onPress={
+                variant="secondary"
+                disabled={isTrnSubmitting}
+                onClick={
                   isEditMode
                     ? handleCancelEdit
                     : () => setIsAddTrnModalOpen(false)
                 }
               >
+                <X size={16} className="mr-2" />
                 Cancel
               </Button>
 
               {isEditMode ? (
                 <Button
-                  className="bg-blue-600 font-semibold text-white"
-                  isDisabled={
+                  className="bg-blue-600 font-semibold text-white hover:bg-blue-700"
+                  disabled={
                     !transactionData.date ||
                     (!transactionData.tId &&
                       transactionData.mode !== "" &&
@@ -438,16 +357,19 @@ const TransactionTable: React.FC<Transaction> = ({
                     !transactionData.txnType ||
                     isTrnSubmitting
                   }
-                  isLoading={isTrnSubmitting}
-                  startContent={<Save size={16} />}
-                  onPress={handleSaveEdit}
+                  onClick={handleSaveEdit}
                 >
+                  {isTrnSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save size={16} className="mr-2" />
+                  )}
                   Update Transaction
                 </Button>
               ) : (
                 <Button
-                  className="bg-green-600 font-semibold text-white"
-                  isDisabled={
+                  className="bg-green-600 font-semibold text-white hover:bg-green-700"
+                  disabled={
                     !transactionData.date ||
                     (!transactionData.tId &&
                       transactionData.mode !== "" &&
@@ -456,9 +378,11 @@ const TransactionTable: React.FC<Transaction> = ({
                     !transactionData.txnType ||
                     isTrnSubmitting
                   }
-                  isLoading={isTrnSubmitting}
-                  onPress={addTransaction}
+                  onClick={addTransaction}
                 >
+                  {isTrnSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Add Transaction
                 </Button>
               )}
@@ -489,7 +413,7 @@ const TransactionTable: React.FC<Transaction> = ({
               <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
                 Payment Mode
               </th>
-               <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">
                 Transaction Type
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -500,14 +424,14 @@ const TransactionTable: React.FC<Transaction> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {transactions?.length <= 0 ? (
               <tr>
-                <td className="px-6 py-6 text-center text-gray-500" colSpan={5}>
+                <td className="px-6 py-6 text-center text-gray-500" colSpan={7}>
                   No transactions available
                 </td>
               </tr>
             ) : (
               transactions?.map((transaction, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 ">
+                  <td className="px-6 py-4">
                     {transaction.installment_no || ""}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -525,26 +449,18 @@ const TransactionTable: React.FC<Transaction> = ({
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
                       {transaction.txnType || ""}
                     </span>
                   </td>
                   <td className="px-4 space-x-2 py-2 whitespace-nowrap">
                     <Button
                       size="sm"
-                      startContent={<Edit size={14} />}
-                      variant="flat"
-                      onPress={() => handleEditClick(transaction)}
-                      // isDisabled={transaction.installment_status === "Paid"}
-                    />
-
-                    {/* <Button 
-                                        size="sm" 
-                                        variant="flat" 
-                                        onPress={() => openDeleteModal(transaction)}
-                                        startContent={<Trash2 size={14} />}
-                                    >
-                                    </Button> */}
+                      variant="secondary"
+                      onClick={() => handleEditClick(transaction)}
+                    >
+                      <Edit size={14} />
+                    </Button>
                   </td>
                 </tr>
               ))
@@ -552,31 +468,26 @@ const TransactionTable: React.FC<Transaction> = ({
           </tbody>
         </table>
       </div>
-      {/* Confirmation Modal */}
+
       <ModalComponent
         content={
           <div>
             <h1 className="text-lg font-medium mb-2">
               Are you sure you want to delete this transaction?
             </h1>
-            {/* <p className="text-gray-600">This action cannot be undone.</p> */}
           </div>
         }
         footerContent={
           <>
-            <Button
-              className="bg-gray-500 font-semibold text-white"
-              variant="flat"
-              onPress={handleDeleteCancel}
-            >
+            <Button variant="secondary" onClick={handleDeleteCancel}>
               Cancel
             </Button>
-            <Button
-              className="bg-red-600 font-semibold text-white"
-              isLoading={isDeleting}
-              startContent={<Trash2 size={16} />}
-              onPress={handleDeleteConfirm}
-            >
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              {isDeleting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 size={16} className="mr-2" />
+              )}
               Delete
             </Button>
           </>

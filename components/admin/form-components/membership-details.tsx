@@ -1,8 +1,9 @@
-// import { getCategoryByMemberID } from '@/api/category';
-import { Input, Textarea } from "@heroui/input";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { getCategoryByMemberID } from "@/api/category";
 import { getMemberType } from "@/api/member-type";
 import SmartAutocomplete from "@/components/elements/SmartAutocomplete";
@@ -265,40 +266,41 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
         </>
       </div>
       <div>
-        <Textarea
-          className="rounded-xl focus:outline-none mb-2 focus:ring-2 focus:ring-blue-500"
-          label="Address"
-          name="address"
-          type="text"
-          variant="bordered"
-          value={formData.address}
-          // height={100}
-          onChange={handleChange}
-        />
+        <div className="mb-2 flex flex-col gap-1.5">
+          <Label htmlFor="address">Address</Label>
+          <Textarea
+            id="address"
+            name="address"
+            value={formData.address}
+            onChange={(e) =>
+              handleChange(e as unknown as React.ChangeEvent<HTMLInputElement>)
+            }
+          />
+        </div>
 
-        <div className="grid  lg:grid-cols-2 gap-3 w-full">
+        <div className="grid lg:grid-cols-2 gap-3 w-full">
           <SmartAutocomplete
             items={countryOptions}
             label="Country"
             placeholder="Search and select your country..."
             selectedKey={formData.country}
-            variant="bordered"
             onSelectionChange={handleContrySelection}
             className="w-full"
-            // is={true}
             description="Search for your country"
           />
 
-          <Input
-            className="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            label="Pincode"
-            name="pinCode"
-            placeholder="Pincode Eg.401200"
-            type="number"
-            value={formData.pinCode}
-            variant="bordered"
-            onChange={handleChange}
-          />
+          <div className="flex flex-col gap-1.5 w-full">
+            <Label htmlFor="pinCode">Pincode</Label>
+            <Input
+              id="pinCode"
+              className="w-full"
+              name="pinCode"
+              placeholder="Pincode Eg.401200"
+              type="number"
+              value={formData.pinCode}
+              onChange={handleChange}
+            />
+          </div>
         </div>
       </div>
       <div className="flex justify-between mt-6">

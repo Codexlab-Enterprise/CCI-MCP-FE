@@ -1,10 +1,7 @@
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { cn } from "@heroui/theme";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import {
-  Calendar,
+  Calendar as CalendarIcon,
   CreditCard,
   Download,
   EyeIcon,
@@ -18,19 +15,82 @@ import {
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { DatePicker } from "@heroui/react";
-import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
 import axios from "axios";
-import { I18nProvider } from "@react-aria/i18n";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from "@heroui/modal";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 import TransactionTable from "./transaction-table";
+
+interface DateFieldProps {
+  label?: string;
+  value?: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  maxDate?: Date;
+  className?: string;
+  placeholder?: string;
+}
+
+const DateField: React.FC<DateFieldProps> = ({
+  label,
+  value,
+  onChange,
+  disabled,
+  maxDate,
+  className,
+  placeholder = "Select date",
+}) => {
+  const [open, setOpen] = React.useState(false);
+  const dateValue = value ? new Date(value) : undefined;
+
+  return (
+    <div className={cn("flex w-full flex-col gap-1.5", className)}>
+      {label && <Label>{label}</Label>}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={disabled}
+            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className={cn(!dateValue && "text-muted-foreground")}>
+              {dateValue ? format(dateValue, "yyyy-MM-dd") : placeholder}
+            </span>
+            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={dateValue}
+            captionLayout="dropdown"
+            disabled={maxDate ? { after: maxDate } : undefined}
+            onSelect={(d) => {
+              onChange(d ? format(d, "yyyy-MM-dd") : "");
+              setOpen(false);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
 
 import api from "@/utils/axios";
 import { formatDisplayDate } from "@/utils/date";
@@ -1011,10 +1071,8 @@ const fetchExportData = async () => {
         <div className="flex flex-wrap gap-2">
           <Button
             className="rounded-lg"
-            color={currentStep === 0 ? "primary" : "default"}
-            startContent={<User size={16} />}
-            variant={currentStep === 0 ? "solid" : "flat"}
-            onPress={() => {
+            variant={currentStep === 0 ? "default" : "secondary"}
+            onClick={() => {
               setCurrentStep(0);
               const element = document.getElementById("personal");
 
@@ -1023,14 +1081,13 @@ const fetchExportData = async () => {
               }
             }}
           >
+            <User size={16} className="mr-2" />
             Personal Info
           </Button>
           <Button
             className="rounded-lg"
-            color={currentStep === 1 ? "primary" : "default"}
-            startContent={<CreditCard size={16} />}
-            variant={currentStep === 1 ? "solid" : "flat"}
-            onPress={() => {
+            variant={currentStep === 1 ? "default" : "secondary"}
+            onClick={() => {
               setCurrentStep(1);
               const element = document.getElementById("installments");
 
@@ -1041,13 +1098,14 @@ const fetchExportData = async () => {
               fetchtrnsactions();
             }}
           >
+            <CreditCard size={16} className="mr-2" />
             Installments
           </Button>
           <Button
-            className="rounded-lg bg-green-600 text-white"
-            startContent={<Download size={16} />}
-            onPress={fetchExportData}
+            className="rounded-lg bg-green-600 text-white hover:bg-green-700"
+            onClick={fetchExportData}
           >
+            <Download size={16} className="mr-2" />
             Export Statements
           </Button>
           {/* <Button
@@ -1062,60 +1120,56 @@ const fetchExportData = async () => {
           {installmentSummary?.totalOutstanding === 0 && (
             <>
               <Button
-                className="bg-blue-600 rounded-lg text-white"
-                onPress={() => setIsAssignBelletOpen(true)}
+                className="bg-blue-600 rounded-lg text-white hover:bg-blue-700"
+                onClick={() => setIsAssignBelletOpen(true)}
               >
                 {formData.secondaryPermaentID
                   ? "Update Bellet"
                   : "Assign Bellet"}
               </Button>
 
-              <Modal
-                isOpen={isAssignBelletOpen}
+              <Dialog
+                open={isAssignBelletOpen}
                 onOpenChange={setIsAssignBelletOpen}
               >
-                <ModalContent>
-                  {(onClose) => (
-                    <>
-                      <ModalHeader className="flex flex-col gap-1">
-                        Assign Bellet
-                      </ModalHeader>
-                      <ModalBody>
-                        <I18nProvider locale="en-GB">
-                          <DatePicker
-                            showMonthAndYearPickers
-                            className="w-full"
-                            label="Bellet Date"
-                            maxValue={today(getLocalTimeZone())}
-                            value={belletDate}
-                            onChange={setBelletDate}
-                          />
-                        </I18nProvider>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Assign Bellet</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <DateField
+                      label="Bellet Date"
+                      value={belletDate}
+                      maxDate={new Date()}
+                      onChange={setBelletDate}
+                    />
 
-                        <Input
-                          className="w-full"
-                          label="Membership ID"
-                          placeholder="Membership ID"
-                          value={permanentmembershipId}
-                          onValueChange={setpermanentMembershipId}
-                        />
-                      </ModalBody>
-                      <ModalFooter>
-                        <Button
-                          color="danger"
-                          variant="light"
-                          onPress={onClose}
-                        >
-                          Cancel
-                        </Button>
-                        <Button color="primary" onPress={handleAssignBellet}>
-                          Assign
-                        </Button>
-                      </ModalFooter>
-                    </>
-                  )}
-                </ModalContent>
-              </Modal>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="permanent-membership-id">
+                        Membership ID
+                      </Label>
+                      <Input
+                        id="permanent-membership-id"
+                        className="w-full"
+                        placeholder="Membership ID"
+                        value={permanentmembershipId}
+                        onChange={(e) =>
+                          setpermanentMembershipId(e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setIsAssignBelletOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAssignBellet}>Assign</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </>
           )}
         </div>
@@ -1188,7 +1242,7 @@ const fetchExportData = async () => {
                   : "bg-amber-100"
                   }`}
               >
-                <Calendar
+                <CalendarIcon
                   className={`h-5 w-5 ${installmentSummary?.totalOutstanding === 0
                     ? "text-green-600"
                     : "text-amber-600"
@@ -1221,7 +1275,7 @@ const fetchExportData = async () => {
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                  <Calendar size={16} /> Date of Birth
+                  <CalendarIcon size={16} /> Date of Birth
                 </p>
                 <p className="text-base font-medium">
                   {new Date(formData.date.toString()).toLocaleDateString()}
@@ -1365,17 +1419,11 @@ const fetchExportData = async () => {
 
                   <div className="flex gap-1">
                     <Button
-                      className="bg-blue-500 text-white place-content-center"
-                      onPress={handleOpenSplitModal}
+                      className="bg-blue-500 text-white hover:bg-blue-600 place-content-center"
+                      onClick={handleOpenSplitModal}
                     >
                       Split Installments
                     </Button>
-                    {/* <Button
-                      color="primary"
-                      onPress={refreshInterest}
-                    >
-                      Refresh Interest
-                    </Button> */}
                   </div>
 
                 </div>
@@ -1458,21 +1506,16 @@ const fetchExportData = async () => {
                                 </td>
 
                                 <td className="px-2 py-3 text-center">
-                                  <I18nProvider locale="en-GB">
-                                    <DatePicker
-                                      isDisabled={installment.Status === "PAID"}
-                                      showMonthAndYearPickers
-                                      className="w-full"
-
-                                      value={parseDate(installment.DueDate.split("T")[0]) as any}
-                                      onChange={(date: any) => handleDueDateChange(installment.InstallmentId, date)}
-                                    />
-                                  </I18nProvider>
-                                  {/* {isCurrentYear && (
-                                    <span className=" inline-flex items-center px-2 py-0.5  text-xs font-medium bg-blue-100">
-
-                                    </span>
-                                  )} */}
+                                  <DateField
+                                    disabled={installment.Status === "PAID"}
+                                    value={installment.DueDate?.split("T")[0]}
+                                    onChange={(d) =>
+                                      handleDueDateChange(
+                                        installment.InstallmentId,
+                                        d,
+                                      )
+                                    }
+                                  />
                                 </td>
                                 <td className="px-2 py-3 text-center whitespace-nowrap">
                                   {formatDisplayDate(installment.PaidInFullDate)}
@@ -1608,22 +1651,31 @@ const fetchExportData = async () => {
                                 </td>
 
                                 <td className="px-2 py-3 text-center">
-                                  <I18nProvider locale="en-GB">
-                                    <DatePicker
-                                      isDisabled={installment.Status === "PAID"}
-                                      showMonthAndYearPickers
-                                      className="w-full"
-                                      maxValue={today(getLocalTimeZone()) as any}
-                                      value={
-                                        paidDates[installment.InstallmentId]
-                                          ? (parseDate(paidDates[installment.InstallmentId].split("T")[0]) as any)
-                                          :(installment.LastInterestCalcDate?(parseDate(installment.LastInterestCalcDate.split("T")[0]) as any):( installment.CalculatedAsOf
-                                            ? (parseDate(installment.CalculatedAsOf.split("T")[0]) as any)
-                                            : null))
-                                      }
-                                      onChange={(date: any) => handleDateChange(installment.InstallmentId, date)}
-                                    />
-                                  </I18nProvider>
+                                  <DateField
+                                    disabled={installment.Status === "PAID"}
+                                    maxDate={new Date()}
+                                    value={
+                                      paidDates[installment.InstallmentId]
+                                        ? paidDates[
+                                            installment.InstallmentId
+                                          ].split("T")[0]
+                                        : installment.LastInterestCalcDate
+                                          ? installment.LastInterestCalcDate.split(
+                                              "T",
+                                            )[0]
+                                          : installment.CalculatedAsOf
+                                            ? installment.CalculatedAsOf.split(
+                                                "T",
+                                              )[0]
+                                            : ""
+                                    }
+                                    onChange={(d) =>
+                                      handleDateChange(
+                                        installment.InstallmentId,
+                                        d,
+                                      )
+                                    }
+                                  />
                                 </td>
 
                                 <td className="px-2 py-3 text-center">
@@ -1748,58 +1800,43 @@ const fetchExportData = async () => {
       </div>
       {/* {currentStep === 0 && ( */}
 
-      <Modal
-        isOpen={isReceiptModalOpen}
-        size="lg"
-        onOpenChange={setIsReceiptModalOpen}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Receipt Details - Installment {selectedInstallmentNo}
-              </ModalHeader>
-              <ModalBody className="pb-6">
-                <div className="space-y-3">
-                  {selectedReceipts.map((receipt, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-3">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium">
-                            Receipt: {receipt.receiptNo}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Date:{" "}
-                            {formatDisplayDate(receipt.transactionDate)}
-                          </p>
-                        </div>
-                        <p className="font-bold text-green-600">
-                          ₹{receipt.transactionAmount}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+      <Dialog open={isReceiptModalOpen} onOpenChange={setIsReceiptModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              Receipt Details - Installment {selectedInstallmentNo}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pb-2">
+            {selectedReceipts.map((receipt, index) => (
+              <div key={index} className="bg-gray-50 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">
+                      Receipt: {receipt.receiptNo}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Date: {formatDisplayDate(receipt.transactionDate)}
+                    </p>
+                  </div>
+                  <p className="font-bold text-green-600">
+                    ₹{receipt.transactionAmount}
+                  </p>
                 </div>
-              </ModalBody>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
 
       {/* Split Installment Modal */}
-      <Modal
-        isOpen={isSplitModalOpen}
-        size="2xl"
-        onOpenChange={setIsSplitModalOpen}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Split Installment
-              </ModalHeader>
-              <ModalBody className="max-h-[60vh] overflow-y-auto">
+      <Dialog open={isSplitModalOpen} onOpenChange={setIsSplitModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Split Installment</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
                 <div className="space-y-4">
                   {/* Installment Selection Dropdown */}
                   <div className="bg-white border rounded-lg p-4">
@@ -1853,11 +1890,10 @@ const fetchExportData = async () => {
                             <h4 className="font-medium text-gray-700">{split.label}</h4>
                             {splits.length > 1 && (
                               <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                color="danger"
-                                onPress={() => removeSplit(index)}
+                                size="icon"
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => removeSplit(index)}
                               >
                                 <Trash2 size={16} />
                               </Button>
@@ -1865,33 +1901,38 @@ const fetchExportData = async () => {
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <I18nProvider locale="en-GB">
-                              <DatePicker
-                                showMonthAndYearPickers
-                                label="Due Date"
-                                className="w-full"
-                                // value={split.dueDate ? parseDate(split.dueDate) : null}
-                                onChange={(date) => updateSplit(index, 'dueDate', date)}
-                              />
-                            </I18nProvider>
-
-                            <Input
-                              label="Amount Due (₹)"
-                              type="number"
-                              // value={split.amountDue.toString()}
-                              onValueChange={(value) => updateSplit(index, 'amountDue', Number(value))}
-                              className="w-full"
+                            <DateField
+                              label="Due Date"
+                              value={split.dueDate}
+                              onChange={(d) =>
+                                updateSplit(index, "dueDate", d)
+                              }
                             />
+
+                            <div className="flex flex-col gap-1.5">
+                              <Label>Amount Due (₹)</Label>
+                              <Input
+                                type="number"
+                                onChange={(e) =>
+                                  updateSplit(
+                                    index,
+                                    "amountDue",
+                                    Number(e.target.value),
+                                  )
+                                }
+                                className="w-full"
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
 
                       <Button
-                        onPress={addSplit}
-                        variant="bordered"
-                        startContent={<Plus size={16} />}
+                        onClick={addSplit}
+                        variant="outline"
                         className="w-full"
                       >
+                        <Plus size={16} className="mr-2" />
                         Add Another Split
                       </Button>
 
@@ -1929,29 +1970,34 @@ const fetchExportData = async () => {
                     </>
                   )}
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancel
-                </Button>
-                <Button
-                  color="primary"
-                  onPress={handleSplitInstallment}
-                  isDisabled={
-                    !selectedInstallmentForSplit ||
-                    splits.reduce((sum, split) => sum + (Number(split.amountDue) || 0), 0) !==
-                    Math.round(selectedInstallmentForSplit.Installment_amount) ||
-                    splits.some(split => !split.dueDate)
-                  }
-                >
-                  Split Installment
-                </Button>
-
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => setIsSplitModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSplitInstallment}
+              disabled={
+                !selectedInstallmentForSplit ||
+                splits.reduce(
+                  (sum, split) => sum + (Number(split.amountDue) || 0),
+                  0,
+                ) !==
+                  Math.round(
+                    selectedInstallmentForSplit.Installment_amount,
+                  ) ||
+                splits.some((split) => !split.dueDate)
+              }
+            >
+              Split Installment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

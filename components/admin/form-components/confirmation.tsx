@@ -1,6 +1,7 @@
 import React from "react";
-import { Button } from "@heroui/button";
 import { Loader2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 import InstallmentTable from "./installment-table";
 
@@ -15,7 +16,6 @@ interface Props {
 }
 const Confirmation: React.FC<Props> = ({
   formData,
-  setFormData,
   totalAmount,
   handleBack,
   handleContinue,
@@ -90,35 +90,6 @@ const Confirmation: React.FC<Props> = ({
                     All installments will be due in January or July based on
                     your selected start date
                   </p>
-
-                  {/* <div className="space-y-4 max-h-80 w-full lg:w-[60vw] justify-self-center relative overflow-y-scroll border rounded-lg bg-white/50">
-                  <div className="grid grid-cols-3 lg:grid-cols-5 sticky bg-white/80 backdrop-blur-sm  top-0 gap-2 font-medium text-sm border-b px-10  py-2">
-                    <div className="col-span-1">#</div>
-                    <div className="col-span-1 lg:col-span-2">Due</div>
-                   
-                    <div className="col-span-1 lg:col-span-2">Amount</div>
-                  </div>
-                  
-                  {formData.installmentDetails.map((installment:any, index) => {
-                    const formattedAmount = new Intl.NumberFormat('en-IN', {
-                      style: 'currency',
-                      currency: 'INR',
-                      maximumFractionDigits: 0
-                    }).format(installment.amount);
-
-                    // const dueDate = new Date(installment.dueDate);
-                    // const monthName = dueDate.toLocaleString('default', { month: 'long' });
-                    
-                    return (
-                      <div key={index} className={cn("grid grid-cols-3 lg:grid-cols-5 gap-2 px-10 pb-4 text-sm", index!== formData.installmentDetails.length-1 && 'border-b' )}>
-                        <div className="col-span-1">{index + 1}</div>
-                        <div className="col-span-1 lg:col-span-2">{`${installment?.month}, ${installment?.year}`}</div>
-                       
-                        <div className="col-span-1 lg:col-span-2">{formattedAmount}</div>
-                      </div>
-                    );
-                  })}
-                </div> */}
                   <InstallmentTable
                     installmentDetails={formData.installmentDetails}
                   />
@@ -136,18 +107,15 @@ const Confirmation: React.FC<Props> = ({
           Back
         </button>
         <div className="flex gap-2">
-          {/* <button onClick={handleSubmitClick} className='text-gray-600 border py-2 px-4 rounded-md hover:bg-gray-100'>
-              Save as draft
-            </button> */}
           <Button
-            className="bg-blue-600 text-white font-medium"
-            isDisabled={loading}
-            startContent={
-              loading ? <Loader2 size={16} className="animate-spin" /> : null
-            }
-            onPress={handleContinue}
+            className="bg-blue-600 text-white font-medium hover:bg-blue-700"
+            disabled={loading}
+            onClick={handleContinue}
           >
-            {loading ? "Please wait..." : `${type === "edit" ? "Update" : "Add"} Members`}
+            {loading && <Loader2 size={16} className="mr-2 animate-spin" />}
+            {loading
+              ? "Please wait..."
+              : `${type === "edit" ? "Update" : "Add"} Members`}
           </Button>
         </div>
       </div>

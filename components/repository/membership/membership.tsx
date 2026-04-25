@@ -1,4 +1,4 @@
-import { Button } from "@heroui/button";
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -181,21 +181,21 @@ const Membership = () => {
           ExtraButtonCode={
             <div className="flex items-center gap-2">
               <Button
-                onPress={() => setIsAddModalOpen(true)}
+                onClick={() => setIsAddModalOpen(true)}
                 className="bg-blue-500 py-7 text-white hover:bg-blue-600"
               >
                 <Plus className="w-5 hidden lg:block h-5" />
                 Add Membership
               </Button>
               {/* <Button
-                 onPress={() => router.push('/members/add')}
+                 onClick={() => router.push('/members/add')}
                  className="bg-black py-7 text-white hover:bg-black/80"
                >
                 <Import className='w-5 hidden lg:block h-5' />
                  Import CSV
                 </Button>
                 <Button
-                 onPress={() => router.push('/members/add')}
+                 onClick={() => router.push('/members/add')}
                  className=" py-7 bg-green-600 text-white  hover:bg-green-700"
                >
                 <FaFileExport className='w-5 h-5 hidden lg:block' />

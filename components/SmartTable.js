@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useAsyncList } from "@react-stately/data";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { Loader2 } from "lucide-react";
 
 import {
   useTable,
@@ -9,20 +8,20 @@ import {
   useSortBy,
   usePagination,
 } from "react-table";
+
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableColumn,
-  TableRow,
   TableCell,
-} from "@heroui/table";
-import { Input } from "@heroui/input";
-import { Button, ButtonGroup } from "@heroui/button";
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
 import { subtitle, title } from "./primitives";
-import { Spinner } from "@heroui/spinner";
-import { useRouter } from "next/router";
-import { ScrollShadow } from "@heroui/react";
 
 export const SearchIcon = (props) => {
   return (
@@ -53,14 +52,15 @@ export const SearchIcon = (props) => {
     </svg>
   );
 };
+
 const SmartTables = ({
   columns,
   data = [],
   isLoading,
   pageTitle,
-  bottomContent=null,
+  bottomContent = null,
   pagePreTitle,
-  buttonName='',
+  buttonName = "",
   searchLabel,
   buttonLink,
   ExtraCode,
@@ -70,7 +70,6 @@ const SmartTables = ({
   secondarySearchQuery = "",
   setSecondarySearchQuery = null,
   secondarySearchLabel = undefined,
-  isVisible = false,
   isHeaderVisible = true,
   isSearchable = true,
   selectedPageSize = 10,
@@ -83,19 +82,11 @@ const SmartTables = ({
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    rows,
     prepareRow,
     page,
-    canPreviousPage,
-    canNextPage,
-    pageOptions,
-    pageCount,
     gotoPage,
-    nextPage,
-    previousPage,
-    state: { pageIndex, pageSize, globalFilter, sortBy },
+    state: { globalFilter },
     setGlobalFilter,
-    setSortBy,
   } = useTable(
     {
       columns,
@@ -104,162 +95,79 @@ const SmartTables = ({
     },
     useGlobalFilter,
     useSortBy,
-    usePagination
+    usePagination,
   );
-  const [SortDescriptor, setSortDescriptor] = useState();
+
   useEffect(() => {
-    // TableColumnis effect runs when sorting state changes
-    // Make your API call here using sortBy.state
-    // if(_setSortBy!=undefined){
-    // _setSortBy(sortBy);
-    // }
-    // Example API call:
-    // fetch('your-api-endpoint-here')
-    //     .TableColumnen(response => response.json())
-    //     .TableColumnen(data => {
-    //         // Handle API response data
-    //     })
-    //     .catch(error => {
-    //         // Handle errors
-    //     });
     setSelectedPageSize(selectedPageSize);
     gotoPage(0);
   }, [selectedPageSize]);
 
-  const headerCell = {
-    position: "sticky",
-    zIndex: "0",
-    top: "0",
-  };
-
-  // const tableColumns = useMemo(() => columns, [columns]);
-  let list = useAsyncList({
-    async sort({ items, sortDescriptor }) {
-      return {
-        items: items.sort((a, b) => {
-          let first = a[sortDescriptor.column];
-          let second = b[sortDescriptor.column];
-          let cmp =
-            (parseInt(first) || first) < (parseInt(second) || second) ? -1 : 1;
-
-          if (sortDescriptor.direction === "descending") {
-            cmp *= -1;
-          }
-
-          return cmp;
-        }),
-      };
-    },
-  });
-
   return (
     <>
-      {/* <!-- Page header --> */}
       {isHeaderVisible ? (
         <section className="flex sm:block flex-col items-center justify-between gap-2 py-5 md:py-5">
           <div className="container">
-            <div className="block md:flex  gap-2 items-center justify-between px-2">
-              <div className="">
-                {/* <!-- Page pre-title --> */}
+            <div className="block md:flex gap-2 items-center justify-between px-2">
+              <div>
                 <h1 className={title()}>{pageTitle}</h1>
                 <h3 className={subtitle()}>{pagePreTitle}</h3>
               </div>
               <div className="flex flex-col lg:flex-row gap-2">
                 {isSearchable ? (
                   <div className="flex flex-col lg:flex-row gap-2">
-                    <Input
-                      value={
-                        setsearchQuery != null ? searchQuery : globalFilter || ""
-                      }
-                      onChange={(e) =>
-                        setsearchQuery != null
-                          ? setsearchQuery(e.target.value)
-                          : setGlobalFilter(e.target.value)
-                      }
-                      // isClearable
-                      classNames={{
-                        label: "text-black/50 dark:text-white/90",
-                        input: [
-                          "bg-TableRowansparent",
-                          "text-black/90 dark:text-white/90",
-                          "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                        ],
-                        innerWrapper: "bg-TableRowansparent",
-                        inputWrapper: [
-                          // "shadow-xl",
-                          "bg-default-200/50",
-                          "dark:bg-default/60",
-                          "backdrop-blur-xl",
-                          "backdrop-saturate-200",
-                          "hover:bg-default-200/70",
-                          "dark:hover:bg-default/70",
-                          "group-data-[focus=TableRowue]:bg-default-200/50",
-                          "dark:group-data-[focus=TableRowue]:bg-default/60",
-                          "!cursor-text",
-                        ],
-                      }}
-                      label="Search"
-                      placeholder={
-                        searchLabel != undefined ? searchLabel : "Search"
-                      }
-                      radius="lg"
-                      startContent={
-                        <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
-                      }
-                    />
-                    {setSecondarySearchQuery != null ? (
+                    <div className="relative">
+                      <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <Input
-                        value={secondarySearchQuery}
-                        onChange={(e) => setSecondarySearchQuery(e.target.value)}
-                        classNames={{
-                          label: "text-black/50 dark:text-white/90",
-                          input: [
-                            "bg-TableRowansparent",
-                            "text-black/90 dark:text-white/90",
-                            "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                          ],
-                          innerWrapper: "bg-TableRowansparent",
-                          inputWrapper: [
-                            "bg-default-200/50",
-                            "dark:bg-default/60",
-                            "backdrop-blur-xl",
-                            "backdrop-saturate-200",
-                            "hover:bg-default-200/70",
-                            "dark:hover:bg-default/70",
-                            "group-data-[focus=TableRowue]:bg-default-200/50",
-                            "dark:group-data-[focus=TableRowue]:bg-default/60",
-                            "!cursor-text",
-                          ],
-                        }}
-                        label="Search"
+                        className="pl-9"
                         placeholder={
-                          secondarySearchLabel != undefined
-                            ? secondarySearchLabel
-                            : "Search"
+                          searchLabel != undefined ? searchLabel : "Search"
                         }
-                        radius="lg"
-                        startContent={
-                          <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
+                        value={
+                          setsearchQuery != null
+                            ? searchQuery
+                            : globalFilter || ""
+                        }
+                        onChange={(e) =>
+                          setsearchQuery != null
+                            ? setsearchQuery(e.target.value)
+                            : setGlobalFilter(e.target.value)
                         }
                       />
+                    </div>
+                    {setSecondarySearchQuery != null ? (
+                      <div className="relative">
+                        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          className="pl-9"
+                          placeholder={
+                            secondarySearchLabel != undefined
+                              ? secondarySearchLabel
+                              : "Search"
+                          }
+                          value={secondarySearchQuery}
+                          onChange={(e) =>
+                            setSecondarySearchQuery(e.target.value)
+                          }
+                        />
+                      </div>
                     ) : null}
                   </div>
                 ) : null}
-                <div className="flex lg:items-center lg:justify-center  flex-col lg:flex-row gap-1">
+                <div className="flex lg:items-center lg:justify-center flex-col lg:flex-row gap-1">
                   {ExtraButtonCode ? ExtraButtonCode : null}
                   {buttonName != "" ? (
                     <Button
-                      className="mx-3 px-10 py-7 rounded-xl "
-                      onPress={() => {
+                      className="mx-3 px-10 py-7 rounded-xl"
+                      onClick={() => {
                         router.push(
                           buttonLink.includes("/add") ||
                             buttonLink.includes("/form")
                             ? buttonLink
-                            : buttonLink + "/add"
+                            : buttonLink + "/add",
                         );
                       }}
                     >
-                      {/* <FaPlusCircle className="icon" /> */}
                       <span>{buttonName}</span>
                     </Button>
                   ) : null}
@@ -269,98 +177,88 @@ const SmartTables = ({
           </div>
         </section>
       ) : null}
-      {/* <!-- Page body --> */}
+
       <section className="container">
         {ExtraCode !== undefined ? ExtraCode : <></>}
-        <ScrollShadow
-          className=" lg:max-w-[80vw]  "
-          onWheel={(e) => {
-            if (e.deltaY !== 0) {
-              e.currentTarget.scrollLeft += e.deltaY;
-              e.preventDefault();
-            }
-          }} orientation="horizontal"
-        >
-          <Table
-            // bottomContent={bottomContent}
-            {...getTableProps()}
-            sortDescriptor={SortDescriptor}
-            onSortChange={(sortDescriptor) => {
-              if (_setSortBy) {
-                _setSortBy(sortDescriptor);
-                setSortDescriptor(sortDescriptor);
-              }
-            }}
-          >
-            {headerGroups.map((headerGroup, _index) => (
+        <ScrollArea className="lg:max-w-[80vw]">
+          <Table {...getTableProps()}>
+            {headerGroups.map((headerGroup, idx) => (
               <TableHeader
                 className="relative z-10"
                 {...headerGroup.getHeaderGroupProps()}
-                columns={columns
-                  .filter((column) => column.show !== false)
-                  .map((column) => {
-                    return { key: column.accessor, label: column.Header };
-                  })}
-                key={_index}
+                key={idx}
               >
-                {/* {headerGroup.headers
-        .filter((column) => column.show !== false) // Filter out columns wiTableColumn show: false
-        .map((column,i) => (
-          <TableColumn
-            // {...column.getHeaderProps(column.getSortByToggleProps())}
-            style={headerCell}
-            allowsSorting
-            key={column.id}
-          >
-            {column.render('Header')}
-            <span>
-              {column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
-            </span>
-          </TableColumn>
-        ))} */}
-                {(column) => (
-                  <TableColumn
-                    className="relative z-20"
-                    key={column.key}
-                    allowsSorting
-                  >
-                    {column.label}
-                  </TableColumn>
-                )}
+                <TableRow>
+                  {headerGroup.headers
+                    .filter((column) => column.show !== false)
+                    .map((column) => (
+                      <TableHead
+                        {...column.getHeaderProps(
+                          column.getSortByToggleProps
+                            ? column.getSortByToggleProps()
+                            : undefined,
+                        )}
+                        key={column.id}
+                        className="relative z-20"
+                      >
+                        {column.render("Header")}
+                        {column.isSorted
+                          ? column.isSortedDesc
+                            ? " ▼"
+                            : " ▲"
+                          : ""}
+                      </TableHead>
+                    ))}
+                </TableRow>
               </TableHeader>
             ))}
-            <TableBody
-              isLoading={isLoading}
-              loadingContent={<Spinner />}
-              {...getTableBodyProps()}
-              emptyContent={"No rows to display."}
-            >
-              {page.map((row, key) => {
-                prepareRow(row);
-                return (
-                  <TableRow {...row.getRowProps()} key={key}>
-                    {row.cells
-                      .filter((cell) => cell.column.show !== false) // Filter out cells wiTableColumn show: false
-                      .map((cell, cellKey) => (
-                        <TableCell
-                          {...cell.getCellProps()}
-                          className="text-muted"
-                          key={cellKey}
-                        >
-                          {cell.render("Cell")}
-                        </TableCell>
-                      ))}
-                  </TableRow>
-                );
-              })}
+            <TableBody {...getTableBodyProps()}>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="text-center py-10"
+                  >
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+                  </TableCell>
+                </TableRow>
+              ) : page.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="text-center py-10 text-muted-foreground"
+                  >
+                    No rows to display.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                page.map((row, key) => {
+                  prepareRow(row);
+
+                  return (
+                    <TableRow {...row.getRowProps()} key={key}>
+                      {row.cells
+                        .filter((cell) => cell.column.show !== false)
+                        .map((cell, cellKey) => (
+                          <TableCell
+                            {...cell.getCellProps()}
+                            className="text-muted"
+                            key={cellKey}
+                          >
+                            {cell.render("Cell")}
+                          </TableCell>
+                        ))}
+                    </TableRow>
+                  );
+                })
+              )}
             </TableBody>
           </Table>
-        </ScrollShadow>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
         {bottomContent ? (
           <div className="flex justify-end mt-3">{bottomContent}</div>
-        ) : (
-          <></>
-        )}
+        ) : null}
       </section>
     </>
   );

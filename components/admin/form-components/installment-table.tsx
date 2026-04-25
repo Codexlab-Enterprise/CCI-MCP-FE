@@ -1,4 +1,4 @@
-import { cn } from "@heroui/theme";
+import { cn } from "@/lib/utils";
 import React from "react";
 interface FormData {
   installmentDetails: {

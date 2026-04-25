@@ -1,7 +1,7 @@
 import React from "react";
-import { Card, CardBody, CardHeader } from "@heroui/card";
 
-// import SearchableDropdown from './SearchableDropdown';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import MultiSelectDropdown from "./SearchableDropdown";
 
 interface FilterCardProps {
@@ -19,12 +19,12 @@ const FilterCard: React.FC<FilterCardProps> = ({
   setFilters,
   filterKey,
 }) => {
-
   return (
     <Card>
-      <CardHeader className="text-lg font-semibold">{title}</CardHeader>
-      <CardBody className="pt-0">
-        {/* <CardBody> */}
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4 pt-0">
         <div className="flex gap-2 pt-1">
           <MultiSelectDropdown
             filterKey={filterKey}
@@ -33,9 +33,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
             setFilters={setFilters}
           />
         </div>
-
-        {/* </CardBody> */}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };
