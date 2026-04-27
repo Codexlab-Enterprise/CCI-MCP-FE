@@ -22,6 +22,7 @@ import { DatePicker } from "@heroui/react";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
 import axios from "axios";
 import { I18nProvider } from "@react-aria/i18n";
+import { Spinner } from "@heroui/spinner";
 import {
   Modal,
   ModalContent,
@@ -83,6 +84,7 @@ const ViewForm: React.FC<Props> = ({
   const [isAddTrnModalOpen, setIsAddTrnModalOpen] = useState(false);
   const [transactions, setTransactions] = useState<any>([]);
   const [installmentSummary, setInstallmentSummary] = useState<any>(null);
+  const [isInstallmentLoading, setIsInstallmentLoading] = useState(false);
   const [isAssignBelletOpen, setIsAssignBelletOpen] = useState(false);
   const [belletDate, setBelletDate] = useState<any>(null);
   const [permanentmembershipId, setpermanentMembershipId] = useState("");
@@ -227,64 +229,70 @@ const ViewForm: React.FC<Props> = ({
   // };
 
   const fetchInstallments = async () => {
-    const res = await getInstallments(access, formData.memberShipId);
+    setIsInstallmentLoading(true);
 
+    try {
+      const res = await getInstallments(access, formData.memberShipId);
 
-    if (res.status === 200 && Array.isArray(res.data.data.rows)) {
-      const mappedInstallments = res.data.data.rows.map((item: any) => {
-        const dueDate = item.DueDate ? new Date(item.DueDate) : null;
+      if (res.status === 200 && Array.isArray(res.data.data.rows)) {
+        const mappedInstallments = res.data.data.rows.map((item: any) => {
+          const dueDate = item.DueDate ? new Date(item.DueDate) : null;
 
-        return {
-          InstallmentId: item.InstallmentId,
-          Label: item.Label,
-          DueDate: item.DueDate,
-          AmountDue: Number(item.AmountDue) || 0,
-          Status: item.Status,
-          PaidInFullDate: item.PaidDate,
-          LastInterestCalcDate: item.LastInterestCalcDate,
-          CalculatedAsOf: item.CalculatedAsOf,
-          PrincipalPaid: Number(item.PrincipalPaid) || 0,
-          PrincipalOutstanding: Number(item.PrincipalOutstanding) || 0,
-          InterestAccrued: Number(item.InterestAccrued) || 0,
-          InterestPaid: Number(item.InterestPaid) || 0,
-          InterestOutstanding: Number(item.InterestOutstanding) || 0,
-          GSTAccrued: Number(item.GSTAccrued) || 0,
-          GSTPaid: Number(item.GSTPaid) || 0,
-          GSTOutstanding: Number(item.GSTOutstanding) || 0,
-          TotalOutstanding: Number(item.TotalOutstanding) || 0,
-          IsOverdue: item.IsOverdue || false,
-          MonthsProrated: Number(item.MonthsProrated) || 0,
-          MonthsRounded: Number(item.MonthsRounded) || 0,
-          InterestPctOfPrincipal: Number(item.InterestPctOfPrincipal) || 0,
+          return {
+            InstallmentId: item.InstallmentId,
+            Label: item.Label,
+            DueDate: item.DueDate,
+            AmountDue: Number(item.AmountDue) || 0,
+            Status: item.Status,
+            PaidInFullDate: item.PaidDate,
+            LastInterestCalcDate: item.LastInterestCalcDate,
+            CalculatedAsOf: item.CalculatedAsOf,
+            PrincipalPaid: Number(item.PrincipalPaid) || 0,
+            PrincipalOutstanding: Number(item.PrincipalOutstanding) || 0,
+            InterestAccrued: Number(item.InterestAccrued) || 0,
+            InterestPaid: Number(item.InterestPaid) || 0,
+            InterestOutstanding: Number(item.InterestOutstanding) || 0,
+            GSTAccrued: Number(item.GSTAccrued) || 0,
+            GSTPaid: Number(item.GSTPaid) || 0,
+            GSTOutstanding: Number(item.GSTOutstanding) || 0,
+            TotalOutstanding: Number(item.TotalOutstanding) || 0,
+            IsOverdue: item.IsOverdue || false,
+            MonthsProrated: Number(item.MonthsProrated) || 0,
+            MonthsRounded: Number(item.MonthsRounded) || 0,
+            InterestPctOfPrincipal: Number(item.InterestPctOfPrincipal) || 0,
 
-          // For backward compatibility with existing code
-          month: dueDate ? dueDate.toLocaleString("default", { month: "long" }) : "",
-          year: dueDate ? dueDate.getFullYear() : "",
-          id: item.InstallmentId,
-          Installment_amount: Number(item.AmountDue) || 0,
-          interest_amt: Number(item.InterestAccrued) || 0,
-          total_amount_payable: Number(item.TotalOutstanding) || 0,
-          Gst_On_Interest: Number(item.GSTAccrued) || 0,
-          CGst_On_Interest: Math.round(Math.max(0, Number(item.GSTAccrued || 0)) / 2),
-          SGst_On_Interest: Math.round(Math.max(0, Number(item.GSTAccrued || 0)) / 2),
-          due_mth: item.MonthsRounded || 0,
-          interest_rate: item.InterestPctOfPrincipal || 0,
-          Receipt_No: item.Status === "PAID" ? `REC-${item.InstallmentId}` : null,
-          calInterestDate: item.LastInterestCalcDate,
-          Paid_Date: item.PaidInFullDate,
-          Pending_amount: Number(item.TotalOutstanding) || 0,
-          Paid_amount: Number(item.PrincipalPaid) || 0,
-        };
-      });
+            // For backward compatibility with existing code
+            month: dueDate ? dueDate.toLocaleString("default", { month: "long" }) : "",
+            year: dueDate ? dueDate.getFullYear() : "",
+            id: item.InstallmentId,
+            Installment_amount: Number(item.AmountDue) || 0,
+            interest_amt: Number(item.InterestAccrued) || 0,
+            total_amount_payable: Number(item.TotalOutstanding) || 0,
+            Gst_On_Interest: Number(item.GSTAccrued) || 0,
+            CGst_On_Interest: Math.round(Math.max(0, Number(item.GSTAccrued || 0)) / 2),
+            SGst_On_Interest: Math.round(Math.max(0, Number(item.GSTAccrued || 0)) / 2),
+            due_mth: item.MonthsRounded || 0,
+            interest_rate: item.InterestPctOfPrincipal || 0,
+            Receipt_No: item.Status === "PAID" ? `REC-${item.InstallmentId}` : null,
+            calInterestDate: item.LastInterestCalcDate,
+            Paid_Date: item.PaidInFullDate,
+            Pending_amount: Number(item.TotalOutstanding) || 0,
+            Paid_amount: Number(item.PrincipalPaid) || 0,
+          };
+        });
 
-      setFormData((prev: any) => ({
-        ...prev,
-        installmentDetails: mappedInstallments,
-      }));
+        setFormData((prev: any) => ({
+          ...prev,
+          installmentDetails: mappedInstallments,
+        }));
 
-      // If you still need summary data, you might need to calculate it
-      const summary = calculateSummary(mappedInstallments);
-      setInstallmentSummary(summary);
+        const summary = calculateSummary(mappedInstallments);
+        setInstallmentSummary(summary);
+      }
+    } catch (error) {
+      toast.error("Failed to load installment schedule");
+    } finally {
+      setIsInstallmentLoading(false);
     }
   };
 
@@ -1381,7 +1389,7 @@ const fetchExportData = async () => {
                 </div>
 
                 {/* Table */}
-                <div className=" max-w-[99%] max-h-[70vh] sticky overflow-x-auto border rounded-lg bg-white/50">
+                <div className=" max-w-[99%] sticky overflow-x-auto border rounded-lg bg-white/50">
                   <table className="  text-sm  text-left border-collapse ">
                     <thead className="bg-gray-100  text-gray-700 text-sm font-medium sticky top-0 z-20 ">
                       <tr>
@@ -1434,7 +1442,19 @@ const fetchExportData = async () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {formData.installmentDetails.length > 0 ? (
+                      {isInstallmentLoading ? (
+                        <tr>
+                          <td
+                            className="px-2 py-10 text-center text-sm text-gray-500"
+                            colSpan={15}
+                          >
+                            <div className="flex items-center justify-center gap-3">
+                              <Spinner size="sm" />
+                              <span>Loading installment schedule...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : formData.installmentDetails.length > 0 ? (
                         formData.installmentDetails.map(
                           (installment: any, index: number) => {
                             // Get current year
@@ -1645,9 +1665,14 @@ const fetchExportData = async () => {
                           },
                         )
                       ) : (
-                        <div className="text-center py-10 text-gray-500">
-                          No installments available
-                        </div>
+                        <tr>
+                          <td
+                            className="px-2 py-10 text-center text-gray-500"
+                            colSpan={15}
+                          >
+                            No installments available
+                          </td>
+                        </tr>
                       )}
                     </tbody>
                   </table>
