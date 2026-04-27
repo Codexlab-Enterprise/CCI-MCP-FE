@@ -3,36 +3,30 @@ const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
   async rewrites() {
-    return [
-      {
-        source: "/user/:path*", destination:   `${process.env.NEXT_PUBLIC_API_URL}/`   + ":path*",
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const apiUrl2 = process.env.NEXT_PUBLIC_API_URL_2;
+    const installmentUrl = process.env.NEXT_PUBLIC_INSTALLMENT;
+
+    const rewrites = [
+      apiUrl && {
+        source: "/user/:path*",
+        destination: `${apiUrl}/:path*`,
       },
-      // {
-      //   source: "/api/repository/:path*",
-      //   destination:
-      //        `${process.env.NEXT_PUBLIC_API_URL_2}/`
-      //       + ":path*",
-      // },
-      // {
-      //   source: "/api/members/:path*",
-      //   destination:
-      //        `${process.env.NEXT_PUBLIC_API_URL_2}/api/`
-      //       + ":path*",
-      // },
-      
-      {
-        source: "/v1/uploadfile/:path*", destination: `${process.env.NEXT_PUBLIC_API_URL_2}/v1/uploadfile/:path*`,
+      apiUrl2 && {
+        source: "/v1/uploadfile/:path*",
+        destination: `${apiUrl2}/v1/uploadfile/:path*`,
       },
-      // {
-      //   source: "/v1/members/:memberId/installments/bulk", destination: `${process.env.NEXT_PUBLIC_INSTALLMENT}/members/:memberId/installments/bulk`,
-      // },
-       {
-        source: "/api/v1/installments/:path*", destination: `${process.env.NEXT_PUBLIC_INSTALLMENT}/` + ":path*",
+      installmentUrl && {
+        source: "/api/v1/installments/:path*",
+        destination: `${installmentUrl}/:path*`,
       },
-      {
-        source: "/api/:path*", destination: `${process.env.NEXT_PUBLIC_API_URL_2}/v1/` + ":path*",
+      apiUrl2 && {
+        source: "/api/:path*",
+        destination: `${apiUrl2}/v1/:path*`,
       },
     ];
+
+    return rewrites.filter(Boolean);
   },
 }
 
