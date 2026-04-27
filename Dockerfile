@@ -1,12 +1,14 @@
-FROM --platform=linux/amd64 node:20-slim AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN yarn install
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps --no-audit --no-fund
 COPY . .
-RUN yarn build
+RUN npm run build
 FROM node:20-slim
 WORKDIR /app
-ENV NODE_ENV production
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=builder /app .
 EXPOSE 3000
-CMD ["yarn", "start"]
+CMD ["npm", "run", "start"]
