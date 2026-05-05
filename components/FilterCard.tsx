@@ -19,7 +19,6 @@ const FilterCard: React.FC<FilterCardProps> = ({
   setFilters,
   filterKey,
 }) => {
-  console.log("key", filterKey);
 
   return (
     <Card>

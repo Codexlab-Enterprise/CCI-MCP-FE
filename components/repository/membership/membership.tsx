@@ -64,18 +64,14 @@ const Membership = () => {
   };
 
   const handleView = (id: string) => {
-    console.log(id);
     setSelectedId(id);
   };
 
   const { setValue } = useForm();
   const handleEdit = (id: string) => {
-    console.log(id);
     setSelectedId(id);
-    // console.log(data)
     // router.push(`/members/edit`)
     // let item=data.find((item:any)=>item.ID==id);
-    // console.log(item);
     // setValue('name', item?.Name);
     // setSelectedMemberType(item);
 
@@ -84,7 +80,6 @@ const Membership = () => {
   };
 
   const handleDelete = (id: string) => {
-    console.log(id);
     setSelectedId(id);
     setDeleteModal(true);
   };
@@ -171,14 +166,12 @@ const Membership = () => {
         id: toastId,
       });
     }
-    console.log(data);
   };
 
   useEffect(() => {
     fetchMemberType();
   }, [page, pageSize]);
 
-  // console.log(membershipType?.data?.items);
   // let memberShipData=membershipType?.data?.items
   return (
     <>

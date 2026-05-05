@@ -20,6 +20,7 @@ import React, {
 import { FaFileExport } from "react-icons/fa6";
 import Cookies from "js-cookie";
 import { cn } from "@heroui/theme";
+import { formatDisplayDate } from "@/utils/date";
 
 import { toast } from "sonner";
 import Actions from "@/components/Actions";
@@ -45,6 +46,18 @@ import api from "@/utils/axios";
 
 import axios from "axios";
 
+function useDebounced<T>(value: T, delay = 450) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+}
+
 const Members = () => {
   const router = useRouter();
   // const searchParams = useSearchParams();
@@ -53,17 +66,22 @@ const Members = () => {
   const params = new URLSearchParams(_window?.location?.search);
   // State for filters
   const [filters, setFilters] = useState<any>({
-    page: 1,
-    pageSize: 5,
-    category: "",
-    membership: "",
-    status: "",
+    page: Number(params.get("page") || 1),
+    pageSize: Number(params.get("pageSize") || 5),
+    category: params.get("category") || "",
+    membership: params.get("membership") || "",
+    status: params.get("status") || "",
+    search: params.get("search") || "",
+    mcpSearch: params.get("mcb_no") || "",
   });
 
   const [filterModal, setFilterModal] = useState(false);
   const [categories, setCategories] = useState([]);
   const [membership, setMembership] = useState([]);
   const [memberSearch, setMemberSearch] = useState("");
+  const [mcpSearch, setMcpSearch] = useState(params.get("mcb_no") || "");
+  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [membershipLoading, setMembershipLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const inputRef = useRef(null);
   const [data, setData] = useState([]);
@@ -71,10 +89,13 @@ const Members = () => {
     ? JSON.parse(Cookies.get("user") || "")?.accessToken
     : null;
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(params.get("search") || "");
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState<any>(null);
   const [categorySearch, setCategorySearch] = useState("");
+  const debouncedSearch = useDebounced(search, 450);
+  const debouncedMcpSearch = useDebounced(mcpSearch, 450);
+  const requestIdRef = useRef(0);
 
   // Initialize filters from URL on component mount
   // useEffect(() => {
@@ -89,7 +110,7 @@ const Members = () => {
   // }, [Params]);
 
   // Update URL when filters change
- const updateURL = useCallback(
+  const updateURL = useCallback(
     (newFilters: typeof filters) => {
       const params = new URLSearchParams();
 
@@ -106,6 +127,9 @@ const Members = () => {
       if (newFilters.search && newFilters.search.trim() !== "") {
         params.set("search", newFilters.search.trim());
       }
+      if (newFilters.mcpSearch && newFilters.mcpSearch.trim() !== "") {
+        params.set("mcp_no", newFilters.mcpSearch.trim());
+      }
 
       // Update the URL without page refresh
       router.push(`${pathname}?${params.toString()}`);
@@ -113,48 +137,58 @@ const Members = () => {
     [router, pathname],
   );
 
-  const fetchMembers = async (filtersArg: any) => {
-    if (loading) return;
-    console.log("inside", filtersArg);
+  const fetchMembers = useCallback(
+    async (filtersArg: any) => {
+      const requestId = ++requestIdRef.current;
 
-    const queryParams = new URLSearchParams();
+      const queryParams = new URLSearchParams();
 
-    // pagination
-    queryParams.set("page", String(filtersArg.page));
-    queryParams.set("pagesize", String(filtersArg.pageSize));
+      // pagination
+      queryParams.set("page", String(filtersArg.page));
+      queryParams.set("pagesize", String(filtersArg.pageSize));
 
+      if (filtersArg.search && filtersArg.search.trim() !== "") {
+        queryParams.set("search", filtersArg.search.trim());
+      }
+      if (filtersArg.mcpSearch && filtersArg.mcpSearch.trim() !== "") {
+        queryParams.set("mcp_no", filtersArg.mcpSearch.trim());
+      }
 
-    if (filtersArg.search && filtersArg.search.trim() !== "") {
-      queryParams.set("search", filtersArg.search.trim());
-    }
+      const queryString = queryParams.toString();
 
-    const queryString = queryParams.toString();
+      const queryBody = {
+        CategoryID: filtersArg.category,
+        installment_status: filtersArg.status,
+        membership_Type: filtersArg.membership,
+      };
 
-    const queryBody = {
-      CategoryID: filtersArg.category,
-      installment_status: filtersArg.status,
-      membership_Type: filtersArg.membership,
-    };
+      setLoading(true);
 
-    setLoading(true);
+      try {
+        const res = await getMembers(access, queryString, queryBody)
+          .then((res) => res)
+          .catch((err) => err);
 
-    const res = await getMembers(access, queryString, queryBody)
-      .then((res) => res)
-      .catch((err) => err);
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
 
-    if (res.status == 200) {
-      setData(res?.data?.items);
-    }
-
-    setLoading(false);
-  };
+        if (res.status == 200) {
+          setData(res?.data?.items);
+        }
+      } finally {
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    [access],
+  );
 
   const updateFilter = useCallback(
     (key: keyof typeof filters, value: any) => {
       const newFilters = { ...filters, [key]: value };
 
-      console.log("newFilters", newFilters);
-      fetchMembers(newFilters);
       setFilters(newFilters);
       updateURL(newFilters);
     },
@@ -162,43 +196,31 @@ const Members = () => {
   );
 
   useEffect(() => {
-    // Avoid firing before filters are initialized
     if (!filters.page || !filters.pageSize) return;
 
-    // Reset to page 1 on a new search
+    if (
+      debouncedSearch === (filters.search || "") &&
+      debouncedMcpSearch === (filters.mcpSearch || "")
+    ) {
+      return;
+    }
+
     const newFilters = {
       ...filters,
-      search,
+      search: debouncedSearch,
+      mcpSearch: debouncedMcpSearch,
       page: 1,
     };
 
     setFilters(newFilters);
-    fetchMembers(newFilters);
     updateURL(newFilters);
-  }, [search]);
-
+  }, [debouncedSearch, debouncedMcpSearch, filters, updateURL]);
 
   useEffect(() => {
-    const payload = {
-      search: params.get("search") || "",
-      page: params.get("page") || 1,
-      pageSize: params.get("pageSize") || 5,
-      category: params.get("category"),
-      status: params.get("status"),
-      membership: params.get("membership"),
-    };
+    if (!filters.page || !filters.pageSize) return;
 
-    setFilters(payload);
-    setSearch(payload.search);
-    fetchMembers(payload);
-  }, [
-    params.get("page"),
-    params.get("pageSize"),
-    params.get("category"),
-    params.get("status"),
-    params.get("membership"),
-    params.get("search"),
-  ]);
+    fetchMembers(filters);
+  }, [filters, fetchMembers]);
   const handleView = (id: string) => {
     router.push(`/members/view/${id}`);
   };
@@ -213,36 +235,54 @@ const Members = () => {
   };
 
   const fetchCategory = async () => {
-    const res = await getCategory({ query: `search=${categorySearch}` }, access)
-      .then((res) => res)
-      .catch((err) => err);
+    setCategoryLoading(true);
 
-    if (res.status == 200) {
-      setCategories(
-        res?.data?.items.map((item: any) => {
-          return {
-            id: item.C_ID,
-            label: item.CategoryName,
-          };
-        }),
-      );
+    try {
+      const res = await getCategory(
+        { query: `search=${categorySearch}` },
+        access,
+      )
+        .then((res) => res)
+        .catch((err) => err);
+
+      if (res.status == 200) {
+        setCategories(
+          res?.data?.items.map((item: any) => {
+            return {
+              id: item.C_ID,
+              label: item.CategoryName,
+            };
+          }),
+        );
+      }
+    } finally {
+      setCategoryLoading(false);
     }
   };
 
   const fetchMemberType = async () => {
-    const res = await getMemberType({ query: `search=${memberSearch}` }, access)
-      .then((res) => res)
-      .catch((err) => err);
+    setMembershipLoading(true);
 
-    if (res.status == 200) {
-      setMembership(
-        res?.data?.items.map((item: any) => {
-          return {
-            id: item.ID,
-            label: item.Name,
-          };
-        }),
-      );
+    try {
+      const res = await getMemberType(
+        { query: `search=${memberSearch}` },
+        access,
+      )
+        .then((res) => res)
+        .catch((err) => err);
+
+      if (res.status == 200) {
+        setMembership(
+          res?.data?.items.map((item: any) => {
+            return {
+              id: item.ID,
+              label: item.Name,
+            };
+          }),
+        );
+      }
+    } finally {
+      setMembershipLoading(false);
     }
   };
 
@@ -277,7 +317,8 @@ const Members = () => {
           ),
       },
       {
-        Header: "MemberShip No.", accessor: "primary_membership_ID",
+        Header: "MemberShip No.",
+        accessor: "primary_membership_ID",
         Cell: ({ row }: { row: any }) => (
           <div className="flex space-x-2 text-nowrap">
             {row.original.primary_membership_ID ?? "--"}
@@ -289,10 +330,23 @@ const Members = () => {
         accessor: "mcb_no",
         Cell: ({ row }: { row: any }) => (
           <div className="flex space-x-2 text-nowrap">
-            {row.original.mcb_no && row.original.mcb_no !== "" && row.original.mcb_no !== "null" && row.original.mcb_no !== "undefined"
+            {row.original.mcb_no &&
+            row.original.mcb_no !== "" &&
+            row.original.mcb_no !== "null" &&
+            row.original.mcb_no !== "undefined"
               ? row.original.mcb_no
-              : "--"
-            }
+              : "--"}
+          </div>
+        ),
+      },
+      {
+        Header: "Date of Birth",
+        accessor: "date_of_birth",
+        Cell: ({ row }: { row: any }) => (
+          <div className="flex space-x-2 text-nowrap">
+            {row.original.date_of_birth
+              ? formatDisplayDate(row.original.date_of_birth)
+              : "--"}
           </div>
         ),
       },
@@ -337,7 +391,7 @@ const Members = () => {
         accessor: "upcoming_installment",
         Cell: ({ row }: { row: any }) =>
           row.original.upcoming_installment
-            ? format(row.original.upcoming_installment, "dd-MM-yyyy")
+            ? formatDisplayDate(row.original.upcoming_installment)
             : "--",
       },
       {
@@ -463,7 +517,6 @@ const Members = () => {
 
       toast.success("Export completed successfully", { id: toastId });
     } catch (error) {
-      console.error("Export error:", error);
 
       // Handle specific error cases
       if (axios.isAxiosError(error)) {
@@ -565,6 +618,7 @@ const Members = () => {
                   }
                   id="id"
                   label="label"
+                  isLoading={membershipLoading}
                   options={membership}
                   placeholder="Search membership"
                   query={memberSearch}
@@ -578,6 +632,7 @@ const Members = () => {
                   }
                   id="id"
                   label="label"
+                  isLoading={categoryLoading}
                   options={categories}
                   placeholder="Search category"
                   query={categorySearch}
@@ -703,7 +758,7 @@ const Members = () => {
                     // Always allow going to next page
                     updateFilter("page", parseInt(filters.page) + 1);
                   }}
-                // If you have totalPages data, add: disabled={filters.page >= totalPages}
+                  // If you have totalPages data, add: disabled={filters.page >= totalPages}
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -719,6 +774,9 @@ const Members = () => {
           searchLabel={"Search Members"}
           searchQuery={search}
           setsearchQuery={setSearch}
+          secondarySearchLabel={"Search MCP No."}
+          secondarySearchQuery={mcpSearch}
+          setSecondarySearchQuery={setMcpSearch}
         />
       </div>
       <DeleteModal

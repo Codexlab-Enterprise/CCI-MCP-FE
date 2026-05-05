@@ -85,6 +85,8 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [memberType, setMemberType] = useState([]);
   const [category, setCategory] = useState([]);
+  const [memberTypeLoading, setMemberTypeLoading] = useState(false);
+  const [categoryLoading, setCategoryLoading] = useState(false);
   const countryOptions = React.useMemo(
     () =>
       countries.map((country) => ({
@@ -95,47 +97,47 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
     [countries],
   );
   const fetchMembershipType = async (value?: string) => {
-    const res = await getMemberType({ query: `search=${value || ""}` }, access);
+    setMemberTypeLoading(true);
 
-    console.log(
-      res?.data?.items?.map((item: any) => {
-        return {
-          value: item.ID,
-          label: item.Name,
-        };
-      }),
-    );
-    setMemberType(
-      res?.data?.items?.map((item: any) => {
-        return {
-          value: item.ID,
-          label: `${item.Name}`,
-        };
-      }),
-    );
+    try {
+      const res = await getMemberType(
+        {
+          query: `search=${value || ""}`,
+        },
+        access,
+      );
+
+      setMemberType(
+        res?.data?.items?.map((item: any) => {
+          return {
+            value: item.ID,
+            label: `${item.Name}`,
+          };
+        }),
+      );
+    } finally {
+      setMemberTypeLoading(false);
+    }
   };
 
   const fetchCategories = async (id: any) => {
-    console.log("fetching cat");
-    const res = await getCategoryByMemberID(id, categorySearch);
+    setCategoryLoading(true);
 
-    console.log(
-      res?.data?.data?.map((item: any) => {
-        return {
-          value: item.C_ID,
-          label: item.Name,
-        };
-      }),
-    );
-    setCategory(
-      res?.data?.data?.map((item: any) => {
-        return {
-          value: item.C_ID,
-          label: `${item.Name}`,
-          price: item.Price,
-        };
-      }),
-    );
+    try {
+      const res = await getCategoryByMemberID(id, categorySearch);
+
+      setCategory(
+        res?.data?.data?.map((item: any) => {
+          return {
+            value: item.C_ID,
+            label: `${item.Name}`,
+            price: item.Price,
+          };
+        }),
+      );
+    } finally {
+      setCategoryLoading(false);
+    }
   };
 
   //       let selectedMembership = memberType?.length > 0
@@ -159,12 +161,10 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
   }, [currentStep]);
 
   // },[])
-  // console.log('selectedCategory',formData.subType,memberType?.find((option) => option.value=== formData.subType), memberType);
 
   useEffect(() => {
     if (type == "add") {
     } else {
-      console.log(formData);
       if (formData.subType != undefined) {
         setSelectedMembershipType({
           value: formData.subType,
@@ -180,19 +180,15 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
     }
   }, []);
 
-  console.log("selectedCategory", selectedCategory, selectedMembershipType);
 
   useEffect(() => {
-    console.log("selectedMembershipType", selectedMembershipType);
   }, [selectedMembershipType]);
 
-  console.log("formData", formData);
 
   const [_document, setDocumentObject] = useState<Document | null>(null);
 
   useEffect(() => {
     setDocumentObject(document);
-    console.log("formData ", formData);
   }, []);
 
   return (
@@ -220,6 +216,8 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
           <Select
             isSearchable
             classNamePrefix="react-select"
+            isLoading={memberTypeLoading}
+            isDisabled={memberTypeLoading}
             menuPortalTarget={_document?.body ?? null}
             options={memberType}
             placeholder="Select membership..."
@@ -243,6 +241,8 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
           <Select
             isSearchable
             classNamePrefix="react-select"
+            isLoading={categoryLoading}
+            isDisabled={categoryLoading || !formData.subType}
             menuPortalTarget={_document?.body ?? null}
             options={category}
             placeholder="Select category..."
@@ -258,7 +258,6 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
             })}
             value={selectedCategory || formData.type}
             onChange={(e) => {
-              console.log(e);
               setSelectedCategory(e);
               handleSelectionChange("type", e);
             }}
@@ -335,7 +334,7 @@ const MembershipDetails: React.FC<MemberShipDetailsProps> = ({
             </button> */}
           <button
             onClick={handleContinue}
-            //   disabled={loading}
+            disabled={memberTypeLoading || categoryLoading}
             className="bg-blue-600 text-white py-2 px-4 rounded-md disabled:bg-blue-600/50 hover:bg-blue-700 "
           >
             Continue

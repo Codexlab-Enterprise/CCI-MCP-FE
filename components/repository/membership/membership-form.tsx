@@ -23,7 +23,6 @@ const MembershipForm: React.FC<Props> = ({ onSubmit, isEdit, data, id }) => {
   let filteredData =
     data && data.length > 0 && data?.find((item: any) => item.ID === id);
 
-  console.log(data, id, filteredData);
   useEffect(() => {
     if (isEdit && filteredData) {
       setValue("name", filteredData.Name);

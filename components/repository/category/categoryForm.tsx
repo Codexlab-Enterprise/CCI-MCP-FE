@@ -32,6 +32,8 @@ const CategoryForm: React.FC<Props> = ({
     MemberTypeOption[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [membershipLoading, setMembershipLoading] = useState(false);
+  const [categoryLoading, setCategoryLoading] = useState(false);
   const access = Cookies.get("user")
     ? JSON.parse(Cookies.get("user"))?.accessToken
     : null;
@@ -57,34 +59,47 @@ const CategoryForm: React.FC<Props> = ({
   });
 
   const fetchMemberType = async () => {
-    const res = await getMemberType({ query: `search=${searchQuery}` }, access)
-      .then((res) => res)
-      .catch((err) => err);
+    setMembershipLoading(true);
 
-    if (res.status === 200) {
-      setMembershipOptions(
-        res?.data?.items.map((item: any) => ({
-          id: item.ID,
-          label: item.Name,
-        })),
-      );
+    try {
+      const res = await getMemberType(
+        { query: `search=${searchQuery}` },
+        access,
+      )
+        .then((res) => res)
+        .catch((err) => err);
+
+      if (res.status === 200) {
+        setMembershipOptions(
+          res?.data?.items.map((item: any) => ({
+            id: item.ID,
+            label: item.Name,
+          })),
+        );
+      }
+    } finally {
+      setMembershipLoading(false);
     }
   };
 
   const fetchCategoryByID = async (id: string) => {
-    const res = await getCategoryByID(id)
-      .then((res) => res)
-      .catch((err) => err);
+    setCategoryLoading(true);
 
-    if (res.status == 200) {
-      console.log(res?.data?.data);
-      let data = res?.data?.data;
+    try {
+      const res = await getCategoryByID(id)
+        .then((res) => res)
+        .catch((err) => err);
 
-      setValue("name", data.Name);
-      setValue("membership_type", data.Membership_Type);
-      setValue("price", data.Price);
-    } else {
-      console.log(res?.response.data?.error);
+      if (res.status == 200) {
+        let data = res?.data?.data;
+
+        setValue("name", data.Name);
+        setValue("membership_type", data.Membership_Type);
+        setValue("price", data.Price);
+      } else {
+      }
+    } finally {
+      setCategoryLoading(false);
     }
   };
 
@@ -121,12 +136,10 @@ const CategoryForm: React.FC<Props> = ({
         control={control}
         name="membership_type"
         render={({ field }) => {
-          console.log(field.value);
           let selected = membershipOptions.find(
             (item: any) => item.id == field.value,
           );
 
-          console.log(selected, membershipOptions);
 
           return (
             <div>
@@ -136,11 +149,11 @@ const CategoryForm: React.FC<Props> = ({
               <SearchableDropdown
                 errorMessage={errors.membership_type?.message as string}
                 handleChange={(option) => {
-                  console.log(option.id);
                   field.onChange(option.id);
                 }}
                 id="id"
                 isRequired={true}
+                isLoading={membershipLoading}
                 label="label"
                 options={membershipOptions}
                 placeholder="Search membership types..."
@@ -179,7 +192,7 @@ const CategoryForm: React.FC<Props> = ({
       <Button
         className="flex justify-self-end"
         color="primary"
-        isLoading={isSubmitting}
+        isLoading={isSubmitting || categoryLoading}
         type="submit"
       >
         {isEdit ? "Update" : "Add"}

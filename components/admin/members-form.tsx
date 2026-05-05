@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
@@ -314,6 +320,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
     Array<{ value: string; label: string }>
   >([]);
   const [loading, setLoading] = useState(false);
+  const submitLockRef = useRef(false);
   const [error, setError] = useState("");
   const [selectedMembers, setSelectedMembers] = useState({
     primary: null,
@@ -323,6 +330,8 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebounced(searchQuery, 450);
+  const lastPrimarySearchRef = useRef<string | null>(null);
+  const [primaryMembersLoading, setPrimaryMembersLoading] = useState(false);
 
   const accessToken = useMemo(() => getAccessTokenFromCookie(), []);
   const dob = useMemo(() => toDate(formData.date), [formData.date]);
@@ -433,26 +442,34 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
     if (currentStep === steps.length - 1) {
       // mark as complete and submit
+      if (submitLockRef.current) return;
+
+      submitLockRef.current = true;
       setFormData((p) => ({ ...p, status: "complete" }));
-      if (handleSubmit) {
-        try {
-          setLoading(true);
-          const promise = Promise.resolve(
-            handleSubmit({ ...formData, status: "complete" }),
-          );
+      if (!handleSubmit) {
+        submitLockRef.current = false;
 
-          await toast.promise(promise, {
-            loading: "Please wait...",
-            success: (data: any) => {
-              router.push("/members");
+        return;
+      }
 
-              return data?.data?.message || "Saved";
-            },
-            error: (err: any) => err?.response?.data?.error || "Failed",
-          });
-        } finally {
-          setLoading(false);
-        }
+      try {
+        setLoading(true);
+        const promise = Promise.resolve(
+          handleSubmit({ ...formData, status: "complete" }),
+        );
+
+        await toast.promise(promise, {
+          loading: "Please wait...",
+          success: (data: any) => {
+            router.push("/members");
+
+            return data?.data?.message || "Saved";
+          },
+          error: (err: any) => err?.response?.data?.error || "Failed",
+        });
+      } finally {
+        setLoading(false);
+        submitLockRef.current = false;
       }
     } else {
       setCurrentStep((s) => s + 1);
@@ -465,19 +482,16 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
   // --- Installment schedule generation -------------------------------------
 
-//   useEffect(()=> {
-//     console.log("instalmments", formData.installments);
-//     const count = Number(formData.installments || 1);
-//     console.log("installasldjflkjasdf", count)
-//     if (count == 0 ){
-//       setFormData((prev) => ({
-//         ...prev, 
-//         installments: 1
-//       }))
-//     }
-//   }, [formData.installments]
-// )
-
+  //   useEffect(()=> {
+  //     const count = Number(formData.installments || 1);
+  //     if (count == 0 ){
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         installments: 1
+  //       }))
+  //     }
+  //   }, [formData.installments]
+  // )
 
   useEffect(() => {
     if (type === "view") return;
@@ -514,6 +528,8 @@ const MembersForm: React.FC<MembersFormProps> = ({
         return;
       }
 
+      setPrimaryMembersLoading(true);
+
       try {
         const res = await getPrimaryMembers(accessToken, query, { signal });
         const list =
@@ -527,6 +543,8 @@ const MembersForm: React.FC<MembersFormProps> = ({
         if (e?.name !== "AbortError") {
           setPrimaryMembers([]);
         }
+      } finally {
+        setPrimaryMembersLoading(false);
       }
     },
     [accessToken],
@@ -554,8 +572,15 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
   useEffect(() => {
     const controller = new AbortController();
+    const normalizedQuery = debouncedQuery.trim();
 
-    fetchPrimaryMembers(debouncedQuery, controller.signal);
+    if (lastPrimarySearchRef.current === normalizedQuery) {
+      return () => controller.abort();
+    }
+
+    lastPrimarySearchRef.current = normalizedQuery;
+
+    fetchPrimaryMembers(normalizedQuery, controller.signal);
 
     return () => controller.abort();
   }, [debouncedQuery, fetchPrimaryMembers]);
@@ -617,15 +642,14 @@ const MembersForm: React.FC<MembersFormProps> = ({
               access={accessToken}
               age={age ?? 0}
               error={error}
-              fetchPrimary={fetchPrimaryMembers}
               formData={formData}
               handleBack={handleBack}
               handleChange={handleChange}
               handleContinue={handleContinue}
               handleSelectionChange={handleSelectionChange}
               handleSubmitClick={handleSubmitClick}
+              isPrimaryMembersLoading={primaryMembersLoading}
               primaryMembers={primaryMembers}
-              searchQuery={searchQuery}
               selectedMembers={selectedMembers}
               setFormData={setFormData}
               setSearchQuery={setSearchQuery}
@@ -670,6 +694,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
               formData={formData}
               handleBack={handleBack}
               handleContinue={handleContinue}
+              loading={loading}
               setFormData={setFormData}
               totalAmount={totalAmount}
               type={type}
@@ -684,7 +709,6 @@ const MembersForm: React.FC<MembersFormProps> = ({
       age,
       currentStep,
       error,
-      fetchPrimaryMembers,
       filteredInstallmentOpn,
       formData,
       handleBack,
@@ -693,7 +717,6 @@ const MembersForm: React.FC<MembersFormProps> = ({
       handleCountrySelection,
       handleSelectionChange,
       primaryMembers,
-      searchQuery,
       setFormData,
       setSearchQuery,
       totalAmount,
@@ -705,7 +728,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
   return type === "view" ? (
     <FormLayout
-      className="lg:overflow-y-auto"
+      className="lg:overflow-y-auto no-scrollbar"
       currentStep={currentStep}
       description={description}
       isSidebarVisible={false}

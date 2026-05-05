@@ -71,7 +71,6 @@ export const deleteCategory = async (id: string) => {
 };
 
 export const getCategoryByMemberID = async (id: string, search?: string) => {
-  console.log("category id", id);
   const access = JSON.parse(Cookies.get("user")).accessToken;
   const res = await api
     .get(`/Category/membershipId/${id}?search=${search}`, {

@@ -23,6 +23,16 @@ const InstallmentTable: React.FC<FormData> = ({ installmentDetails }) => {
             currency: "INR",
             maximumFractionDigits: 0,
           }).format(installment.amount);
+          const displayDate =
+            installment.PaidInFullDate ?? installment.PaidDate ?? installment.date;
+          const parsedDate = displayDate ? new Date(displayDate) : null;
+          const formattedDate =
+            parsedDate && !Number.isNaN(parsedDate.getTime())
+              ? parsedDate.toLocaleString("default", {
+                  month: "long",
+                  year: "numeric",
+                })
+              : "--";
 
           return (
             <div
@@ -33,12 +43,7 @@ const InstallmentTable: React.FC<FormData> = ({ installmentDetails }) => {
               )}
             >
               <div className="col-span-1">{index + 1}</div>
-              <div className="col-span-1 lg:col-span-2">
-                {new Date(installment.date).toLocaleString("default", {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </div>
+              <div className="col-span-1 lg:col-span-2">{formattedDate}</div>
 
               <div className="col-span-1 lg:col-span-2">{formattedAmount}</div>
             </div>

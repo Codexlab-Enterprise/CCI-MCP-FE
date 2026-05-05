@@ -67,6 +67,9 @@ const SmartTables = ({
   ExtraButtonCode,
   searchQuery = "",
   setsearchQuery = null,
+  secondarySearchQuery = "",
+  setSecondarySearchQuery = null,
+  secondarySearchLabel = undefined,
   isVisible = false,
   isHeaderVisible = true,
   isSearchable = true,
@@ -107,7 +110,6 @@ const SmartTables = ({
   useEffect(() => {
     // TableColumnis effect runs when sorting state changes
     // Make your API call here using sortBy.state
-    console.log("Sorting state changed:", sortBy);
     // if(_setSortBy!=undefined){
     // _setSortBy(sortBy);
     // }
@@ -122,7 +124,6 @@ const SmartTables = ({
     //     });
     setSelectedPageSize(selectedPageSize);
     gotoPage(0);
-    console.log(selectedPageSize);
   }, [selectedPageSize]);
 
   const headerCell = {
@@ -132,10 +133,8 @@ const SmartTables = ({
   };
 
   // const tableColumns = useMemo(() => columns, [columns]);
-  //console.log(buttonName);
   let list = useAsyncList({
     async sort({ items, sortDescriptor }) {
-      console.log(items, sortDescriptor);
       return {
         items: items.sort((a, b) => {
           let first = a[sortDescriptor.column];
@@ -167,46 +166,84 @@ const SmartTables = ({
               </div>
               <div className="flex flex-col lg:flex-row gap-2">
                 {isSearchable ? (
-                  <Input
-                    value={
-                      setsearchQuery != null ? searchQuery : globalFilter || ""
-                    }
-                    onChange={(e) =>
-                      setsearchQuery != null
-                        ? setsearchQuery(e.target.value)
-                        : setGlobalFilter(e.target.value)
-                    }
-                    // isClearable
-                    classNames={{
-                      label: "text-black/50 dark:text-white/90",
-                      input: [
-                        "bg-TableRowansparent",
-                        "text-black/90 dark:text-white/90",
-                        "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                      ],
-                      innerWrapper: "bg-TableRowansparent",
-                      inputWrapper: [
-                        // "shadow-xl",
-                        "bg-default-200/50",
-                        "dark:bg-default/60",
-                        "backdrop-blur-xl",
-                        "backdrop-saturate-200",
-                        "hover:bg-default-200/70",
-                        "dark:hover:bg-default/70",
-                        "group-data-[focus=TableRowue]:bg-default-200/50",
-                        "dark:group-data-[focus=TableRowue]:bg-default/60",
-                        "!cursor-text",
-                      ],
-                    }}
-                    label="Search"
-                    placeholder={
-                      searchLabel != undefined ? searchLabel : "Search"
-                    }
-                    radius="lg"
-                    startContent={
-                      <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
-                    }
-                  />
+                  <div className="flex flex-col lg:flex-row gap-2">
+                    <Input
+                      value={
+                        setsearchQuery != null ? searchQuery : globalFilter || ""
+                      }
+                      onChange={(e) =>
+                        setsearchQuery != null
+                          ? setsearchQuery(e.target.value)
+                          : setGlobalFilter(e.target.value)
+                      }
+                      // isClearable
+                      classNames={{
+                        label: "text-black/50 dark:text-white/90",
+                        input: [
+                          "bg-TableRowansparent",
+                          "text-black/90 dark:text-white/90",
+                          "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                        ],
+                        innerWrapper: "bg-TableRowansparent",
+                        inputWrapper: [
+                          // "shadow-xl",
+                          "bg-default-200/50",
+                          "dark:bg-default/60",
+                          "backdrop-blur-xl",
+                          "backdrop-saturate-200",
+                          "hover:bg-default-200/70",
+                          "dark:hover:bg-default/70",
+                          "group-data-[focus=TableRowue]:bg-default-200/50",
+                          "dark:group-data-[focus=TableRowue]:bg-default/60",
+                          "!cursor-text",
+                        ],
+                      }}
+                      label="Search"
+                      placeholder={
+                        searchLabel != undefined ? searchLabel : "Search"
+                      }
+                      radius="lg"
+                      startContent={
+                        <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
+                      }
+                    />
+                    {setSecondarySearchQuery != null ? (
+                      <Input
+                        value={secondarySearchQuery}
+                        onChange={(e) => setSecondarySearchQuery(e.target.value)}
+                        classNames={{
+                          label: "text-black/50 dark:text-white/90",
+                          input: [
+                            "bg-TableRowansparent",
+                            "text-black/90 dark:text-white/90",
+                            "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                          ],
+                          innerWrapper: "bg-TableRowansparent",
+                          inputWrapper: [
+                            "bg-default-200/50",
+                            "dark:bg-default/60",
+                            "backdrop-blur-xl",
+                            "backdrop-saturate-200",
+                            "hover:bg-default-200/70",
+                            "dark:hover:bg-default/70",
+                            "group-data-[focus=TableRowue]:bg-default-200/50",
+                            "dark:group-data-[focus=TableRowue]:bg-default/60",
+                            "!cursor-text",
+                          ],
+                        }}
+                        label="Search"
+                        placeholder={
+                          secondarySearchLabel != undefined
+                            ? secondarySearchLabel
+                            : "Search"
+                        }
+                        radius="lg"
+                        startContent={
+                          <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
+                        }
+                      />
+                    ) : null}
+                  </div>
                 ) : null}
                 <div className="flex lg:items-center lg:justify-center  flex-col lg:flex-row gap-1">
                   {ExtraButtonCode ? ExtraButtonCode : null}
@@ -214,7 +251,6 @@ const SmartTables = ({
                     <Button
                       className="mx-3 px-10 py-7 rounded-xl "
                       onPress={() => {
-                        // console.log(buttonLink.includes('/add') || buttonLink.includes('/form') ?buttonLink:buttonLink+"/add")
                         router.push(
                           buttonLink.includes("/add") ||
                             buttonLink.includes("/form")

@@ -22,7 +22,6 @@ api.interceptors.request.use(
       _window?.sessionStorage.getItem("user"),
     )?.refreshToken;
 
-    console.log("token", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -40,7 +39,6 @@ api.interceptors.request.use(
 //   async (error) => {
 //     const originalRequest = error.config;
 
-//     console.log("error", error);
 //     // If error is 401 and we haven't already tried refreshing
 //     if (error.response?.status === 403 && !originalRequest._retry) {
 //       if (isRefreshing) {

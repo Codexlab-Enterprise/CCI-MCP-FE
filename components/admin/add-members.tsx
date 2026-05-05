@@ -82,7 +82,6 @@ const AddAdmin = () => {
       // membership_Type:formData.subType.value
     };
 
-    console.log(payload);
     const res = await createMember(payload);
 
     return res;

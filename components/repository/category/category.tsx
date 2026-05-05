@@ -62,16 +62,13 @@ const Category = () => {
       .catch((err) => err);
 
     if (res.status == 200) {
-      console.log(res?.data?.items);
       setData(res?.data?.items);
     }
     setLoading(false);
   };
 
-  // console.log('category', category)
   // let categoryData=category?.data?.items
   const handleView = (id: string) => {
-    console.log(id);
     setSelectedId(id);
   };
 
@@ -106,7 +103,6 @@ const Category = () => {
       price: data.price,
     };
 
-    console.log(payload);
     const toastId = toast.loading("Adding...");
     let res = await createCategory(payload)
       .then((res) => res)

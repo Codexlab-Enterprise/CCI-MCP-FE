@@ -11,7 +11,7 @@ export const getMembers = async (
   payload?: any,
 ) => {
   const url =
-    filters != "" ? `/SecondaryMember/` + `?${filters}` : `/SecondaryMember/`;
+    filters != "" ? `/SecondaryMember` + `?${filters}` : `/SecondaryMember`;
   const res = await api
     .post(url, payload, {
       headers: {
@@ -239,7 +239,6 @@ export const getSelectInstallment = async (
 
     return res;
   } catch (err) {
-    console.error("API Error:", err);
 
     return err;
   }
@@ -362,7 +361,6 @@ export const updateInstallments = async (installmentId: number, updateData: { am
     });
     return response;
   } catch (error) {
-    console.error('API Error updating installment:', error);
     throw error;
   }
 };

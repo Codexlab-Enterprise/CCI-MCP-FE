@@ -51,6 +51,8 @@ function fmt(dateLike) {
 // Map backend payload → UI form shape
 function memberToForm(m: any = {}, installmentsList = []) {
   const items = m?.items || {};
+  const normalizeCode = (value: unknown) =>
+    value === null || value === undefined ? "" : String(value).trim();
 
   return {
     firstName: items?.First_Name || "",
@@ -62,16 +64,18 @@ function memberToForm(m: any = {}, installmentsList = []) {
     McbNo: items?.mcb_no || "",
     address: items?.address || "",
     type: items?.category || { id: "", label: "" },
-    associatedMember: items?.primary_membership_ID || "",
-    secondaryPermaentID: items?.secondary_permanent_id || "",
+    associatedMember: normalizeCode(items?.primary_membership_ID),
+    secondaryPermaentID: normalizeCode(
+      items?.secondary_permanent_id ?? items?.secondaryPermaentID,
+    ),
     balletDate: items?.ballet_date || "",
-    proposalCode: items?.proposal_code || "",
-    secondarCode: items?.secondary_code || "",
-    pinCode: items?.pin_code || "",
+    proposalCode: normalizeCode(items?.proposal_code ?? items?.proposalCode),
+    secondarCode: normalizeCode(items?.secondary_code ?? items?.secondaryCode),
+    pinCode: normalizeCode(items?.pin_code),
     image: items?.image_name || "",
     country: items?.country || "",
     date: fmt(items?.date_of_birth),
-    memberShipId: items?.secondry_membership_ID || "",
+    memberShipId: normalizeCode(items?.secondry_membership_ID),
     nationality: items?.nationality || "",
     subType: items?.membership_Type || { id: "", label: "" },
     installments: items?.Number_of_installment ?? "",
@@ -126,7 +130,7 @@ const ViewMembers = () => {
   const accessToken = useMemo(() => readAccessTokenFromCookie("user"), []);
   // const memberId = useMemo(() => query?.id ?? '', [query?.id]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [memberRecordId, setMemberRecordId] = useState("");
   const [error, setError] = useState("");
@@ -152,7 +156,11 @@ const ViewMembers = () => {
   }, []);
 
   const fetchMemberByID = useCallback(async () => {
-    if (!isReady || !memberId || !accessToken) return;
+    if (!isReady || !memberId || !accessToken) {
+      setLoading(true);
+
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -193,6 +201,12 @@ const ViewMembers = () => {
   }, [isReady, memberId, accessToken, fetchInstallmentsSafe]);
 
   useEffect(() => {
+    if (!isReady || !query.id) {
+      setLoading(true);
+
+      return;
+    }
+
     fetchMemberByID();
 
     return () => {
@@ -201,7 +215,7 @@ const ViewMembers = () => {
         abortRef.current.abort();
       }
     };
-  }, [fetchMemberByID]);
+  }, [fetchMemberByID, isReady, query.id]);
 
   useEffect(() => {
     let _memberID = query.id;

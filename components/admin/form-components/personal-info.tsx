@@ -61,12 +61,11 @@ interface Props {
   ) => void;
   handleSelectionChange: (key: string, value: any) => void;
   // handleNationalityChange:(key: string, value: any)=>void;
-  searchQuery: string;
   type: string;
-  fetchPrimary: (search?: string) => void;
   age: number;
   access: string;
   primaryMembers: any[];
+  isPrimaryMembersLoading?: boolean;
   handleContinue: () => void;
   handleBack: () => void;
   handleSubmitClick: () => void;
@@ -80,9 +79,7 @@ interface Props {
 const PersonalInfo: React.FC<Props> = ({
   formData,
   type,
-  searchQuery,
   primaryMembers,
-  fetchPrimary,
   setSearchQuery,
   handleChange,
   handleSelectionChange,
@@ -95,6 +92,7 @@ const PersonalInfo: React.FC<Props> = ({
   age,
   selectedMembers,
   setSelectedMembers,
+  isPrimaryMembersLoading = false,
 }) => {
   const [updateStateCounter, setUpdateStateCounter] = useState(0);
   const [selectedPrimary, setSelectedPrimary] = useState(
@@ -106,12 +104,20 @@ const PersonalInfo: React.FC<Props> = ({
   const [selectedProposal, setSelectedProposal] = useState(
     selectedMembers.proposal ?? null,
   );
-  const [primaryOptionLoading, setPrimaryMembersLoading] = useState(false);
-  const [secondaryOptionLoading, setSecondaryMembersLoading] = useState(false);
-  const [proposalOptionLoading, setProposalMembersLoading] = useState(false);
+  const [, setPrimaryMembersLoading] = useState(false);
+  const [, setSecondaryMembersLoading] = useState(false);
+  const [, setProposalMembersLoading] = useState(false);
   const [duplicateCheckLoading, setDuplicateCheckLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+
+  const normalizeMemberCode = (value: unknown) =>
+    value === null || value === undefined ? "" : String(value).trim();
+
+  const toMemberOption = (member: any) => ({
+    value: String(member?.strMemberCode ?? ""),
+    label: `${member?.strMemberCode ?? ""}-${member?.strFullName ?? ""}`,
+  });
 
   const countryOptions = React.useMemo(
     () =>
@@ -123,125 +129,121 @@ const PersonalInfo: React.FC<Props> = ({
     [countries],
   );
 
-const isEditing = React.useMemo(
-  () => !!formData?.id || type === "edit",
-  [formData?.id, type]
-);
+  const handlePrimarySearchInput = (
+    value: string,
+    actionMeta: { action: string },
+  ) => {
+    if (actionMeta.action !== "input-change") {
+      return value;
+    }
 
+    setSearchQuery(value);
 
-useEffect(() => {
- 
-  if (isEditing || formData.email.trim() == "") {
-    setEmailError("");
-    setPhoneError("");
-    return;
-  }
-
-  const checkDuplicates = async () => {
-
-    if (!formData?.email && !formData?.phone) return;
-
-    setDuplicateCheckLoading(true);
-    await Promise.all([
-      formData.email
-        ? checkDuplicateMember("email", formData.email)
-        : Promise.resolve(false),
-      formData.phone
-        ? checkDuplicateMember("phone", formData.phone)
-        : Promise.resolve(false),
-    ]);
-    setDuplicateCheckLoading(false);
+    return value;
   };
 
-  const timeoutId = setTimeout(checkDuplicates, 800);
-  return () => clearTimeout(timeoutId);
-}, [formData.email, formData.phone, isEditing]);
+  const isEditing = React.useMemo(
+    () => !!formData?.id || type === "edit",
+    [formData?.id, type],
+  );
 
-
-const checkDuplicateMember = async (field: string, value: string) => {
-  if (field === "email" &&  !isValidEmail(formData.email))
-    {
-console.log("validate email", isValidEmail(formData.email))
-
-return;
-    }
-  // if (isEditing || !value) {
-  //   if (field === "email") setEmailError("");
-  //   if (field === "phone") setPhoneError("");
-  //   return false;
-  // }
-  // try {
-  //   setDuplicateCheckLoading(true);
-  //   const payload = { [field]: value };
-  //   const res = await ismemberexists(payload);
-  //   if (res.status === 200 && res.data.exists) {
-  //     const msg = `Member with this already exists`;
-  //     field === "email" ? setEmailError(msg) : setPhoneError(msg);
-  //     toast.error(msg);
-  //     return true;
-  //   } else {
-  //     field === "email" ? setEmailError("") : setPhoneError("");
-      return false;
-  //   }
-  // } catch (e) {
-  //   console.error("Error checking duplicate member:", e);
-  //   return false;
-  // } finally {
-  //   setDuplicateCheckLoading(false);
-  // }
-};
-
-
-
-const handleContinueWithValidation = async () => {
-  setEmailError("");
-  setPhoneError("");
-
-console.log("validate email", isValidEmail(formData.email))
-
-  if (isEditing) {
-    handleContinue(); 
-    return;
-  }
-
-  let hasDuplicate = false;
-  setDuplicateCheckLoading(true);
-
-
-  try {
-    if (formData.email && isValidEmail(formData.email)) {
-      
-    //   const emailRes = await ismemberexists({ email: formData.email });
-
-    //   if (emailRes.status === 200 && emailRes.data.exists) {
-    //     setEmailError("Member with this email already exists");
-    //     toast.error("Member with this email already exists");
-    //     hasDuplicate = true;
-    //   }
-          handleContinue();
-
+  useEffect(() => {
+    if (isEditing || formData.email.trim() == "") {
+      setEmailError("");
+      setPhoneError("");
+      return;
     }
 
-    // if (formData.phone && !hasDuplicate) {
-    //   const phoneRes = await ismemberexists({ phone: formData.phone });
-    //   if (phoneRes.status === 200 && phoneRes.data.exists) {
-    //     setPhoneError("Member with this phone already exists");
-    //     toast.error("Member with this phone already exists");
-    //     hasDuplicate = true;
-    //   }
+    const checkDuplicates = async () => {
+      if (!formData?.email && !formData?.phone) return;
+
+      setDuplicateCheckLoading(true);
+      await Promise.all([
+        formData.email
+          ? checkDuplicateMember("email", formData.email)
+          : Promise.resolve(false),
+        formData.phone
+          ? checkDuplicateMember("phone", formData.phone)
+          : Promise.resolve(false),
+      ]);
+      setDuplicateCheckLoading(false);
+    };
+
+    const timeoutId = setTimeout(checkDuplicates, 800);
+    return () => clearTimeout(timeoutId);
+  }, [formData.email, formData.phone, isEditing]);
+
+  const checkDuplicateMember = async (field: string, value: string) => {
+    if (field === "email" && !isValidEmail(formData.email)) {
+
+      return;
+    }
+    // if (isEditing || !value) {
+    //   if (field === "email") setEmailError("");
+    //   if (field === "phone") setPhoneError("");
+    //   return false;
     // }
+    // try {
+    //   setDuplicateCheckLoading(true);
+    //   const payload = { [field]: value };
+    //   const res = await ismemberexists(payload);
+    //   if (res.status === 200 && res.data.exists) {
+    //     const msg = `Member with this already exists`;
+    //     field === "email" ? setEmailError(msg) : setPhoneError(msg);
+    //     toast.error(msg);
+    //     return true;
+    //   } else {
+    //     field === "email" ? setEmailError("") : setPhoneError("");
+    return false;
+    //   }
+    // } catch (e) {
+    //   return false;
+    // } finally {
+    //   setDuplicateCheckLoading(false);
+    // }
+  };
 
-    // if (!hasDuplicate) 
+  const handleContinueWithValidation = async () => {
+    setEmailError("");
+    setPhoneError("");
 
-  }
-  
-  catch (error) {
-    console.error("Error checking duplicates:", error);
-    toast.error("Error checking member existence");
-  } finally {
-    setDuplicateCheckLoading(false);
-  }
-};
+
+    if (isEditing) {
+      handleContinue();
+      return;
+    }
+
+    let hasDuplicate = false;
+    setDuplicateCheckLoading(true);
+
+    try {
+      if (formData.email && isValidEmail(formData.email)) {
+        //   const emailRes = await ismemberexists({ email: formData.email });
+
+        //   if (emailRes.status === 200 && emailRes.data.exists) {
+        //     setEmailError("Member with this email already exists");
+        //     toast.error("Member with this email already exists");
+        //     hasDuplicate = true;
+        //   }
+        handleContinue();
+      }
+
+      // if (formData.phone && !hasDuplicate) {
+      //   const phoneRes = await ismemberexists({ phone: formData.phone });
+      //   if (phoneRes.status === 200 && phoneRes.data.exists) {
+      //     setPhoneError("Member with this phone already exists");
+      //     toast.error("Member with this phone already exists");
+      //     hasDuplicate = true;
+      //   }
+      // }
+
+      // if (!hasDuplicate)
+    } catch (error) {
+      toast.error("Error checking member existence");
+    } finally {
+      setDuplicateCheckLoading(false);
+    }
+  };
 
   const calculateDetailedAge = (dobString) => {
     if (!dobString) return "";
@@ -293,7 +295,6 @@ console.log("validate email", isValidEmail(formData.email))
 
   const [detailedAge, setDetailedAge] = useState("");
 
-
   useEffect(() => {
     if (formData.date && formData.date !== "") {
       const calculatedAge = calculateDetailedAge(formData.date);
@@ -308,7 +309,6 @@ console.log("validate email", isValidEmail(formData.email))
 
   useEffect(() => {
     setDocumentObject(document);
-    console.log("formData ", formData);
   }, []);
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -366,13 +366,11 @@ console.log("validate email", isValidEmail(formData.email))
 
           // toast.success(result.message || 'File uploaded successfully!');
         } catch (error) {
-          console.error("Error uploading file:", error);
           toast.error("Failed to upload file");
         }
       }
     },
   });
-  
 
   const handleNationalitySelection = (key: string | null) => {
     setFormData((prev: any) => ({
@@ -382,7 +380,6 @@ console.log("validate email", isValidEmail(formData.email))
   };
 
   const fetchPrimaryValue = async (id) => {
-    console.log("id", id);
     const res = await api
       .get("/PrimaryMember/" + id + "")
       .then((res) => res)
@@ -401,78 +398,62 @@ console.log("validate email", isValidEmail(formData.email))
     const fetchData = async () => {
       let counter = 0;
       const updates: any = {};
+      const associatedMember = normalizeMemberCode(formData.associatedMember);
+      const secondaryCode = normalizeMemberCode(formData.secondarCode);
+      const proposalCode = normalizeMemberCode(formData.proposalCode);
 
-      if (formData.associatedMember !== "") {
+      if (associatedMember !== "") {
         setPrimaryMembersLoading(true);
-        const primary: any = await fetchPrimaryValue(formData.associatedMember);
+        const primary: any = await fetchPrimaryValue(associatedMember);
 
         if (primary) {
-          updates.primary = {
-            value: primary.strMemberCode,
-            label: `${primary.strMemberCode}-${primary.strFullName}`,
-          };
-        }
-        setPrimaryMembersLoading(false);
-
-        if (updates.primary) {
+          updates.primary = toMemberOption(primary);
           setSelectedPrimary(updates.primary);
         }
+        setPrimaryMembersLoading(false);
         counter++;
       }
 
-      if (formData.secondarCode !== "") {
-        if (
-          formData.associatedMember !== "" &&
-          formData.secondarCode == formData.associatedMember
-        ) {
-          updates.secondary = { ...updates.primary };
+      if (secondaryCode !== "") {
+        if (associatedMember !== "" && secondaryCode === associatedMember) {
+          updates.secondary = updates.primary ? { ...updates.primary } : null;
         } else {
           setSecondaryMembersLoading(true);
-          const secondary: any = await fetchPrimaryValue(formData.secondarCode);
+          const secondary: any = await fetchPrimaryValue(secondaryCode);
 
           if (secondary) {
-            updates.secondary = {
-              value: secondary.strMemberCode,
-              label: `${secondary.strMemberCode}-${secondary.strFullName}`,
-            };
+            updates.secondary = toMemberOption(secondary);
           }
           setSecondaryMembersLoading(false);
-
-          if (updates.secondary) {
-            setSelectedSecondary(updates.secondary);
-          }
+        }
+        if (updates.secondary) {
+          setSelectedSecondary(updates.secondary);
         }
         counter++;
       }
 
-      if (formData.proposalCode !== "") {
-        if (
-          formData.associatedMember !== "" &&
-          formData.proposalCode == formData.associatedMember
-        ) {
-          updates.proposal = { ...updates.primary };
-        } else if (
-          formData.secondarCode !== "" &&
-          formData.proposalCode == formData.secondarCode
-        ) {
-          updates.proposal = { ...updates.secondary };
+      if (proposalCode !== "") {
+        if (associatedMember !== "" && proposalCode === associatedMember) {
+          updates.proposal = updates.primary ? { ...updates.primary } : null;
+        } else if (secondaryCode !== "" && proposalCode === secondaryCode) {
+          updates.proposal = updates.secondary
+            ? { ...updates.secondary }
+            : null;
         } else {
           setProposalMembersLoading(true);
-          const proposal: any = await fetchPrimaryValue(formData.proposalCode);
+          const proposal: any = await fetchPrimaryValue(proposalCode);
 
           if (proposal) {
-            updates.proposal = {
-              value: proposal.strMemberCode,
-              label: `${proposal.strMemberCode}-${proposal.strFullName}`,
-            };
+            updates.proposal = toMemberOption(proposal);
           }
           setProposalMembersLoading(false);
-
-          if (updates.proposal) {
-            setSelectedProposal(updates.proposal);
-          }
-          counter++;
         }
+
+        if (updates.proposal) {
+          setSelectedProposal(updates.proposal);
+        }
+
+        counter++;
       }
       // Update selected members in one go
       setSelectedMembers((prev) => ({
@@ -489,12 +470,7 @@ console.log("validate email", isValidEmail(formData.email))
     fetchData();
   }, [formData.associatedMember, formData.secondarCode, formData.proposalCode]);
 
-  
-
   useEffect(() => {
-    console.log("Proposal Code", selectedMembers.proposal);
-    console.log("Associated Member", selectedMembers.primary);
-    console.log("Secondry Code", selectedMembers.secondary);
   }, [selectedMembers]);
 
   return (
@@ -671,12 +647,12 @@ console.log("validate email", isValidEmail(formData.email))
           <Select
             isSearchable
             classNamePrefix="react-select"
-            isLoading={selectedPrimary ? null : primaryOptionLoading}
+            isLoading={isPrimaryMembersLoading}
             loadingMessage={() => "Loading member data..."}
             menuPortalTarget={_document?.body ?? null}
             options={primaryMembers}
             placeholder={
-              primaryOptionLoading
+              isPrimaryMembersLoading
                 ? "Loading member data..."
                 : "Select Primary member..."
             }
@@ -695,20 +671,18 @@ console.log("validate email", isValidEmail(formData.email))
               setSelectedMembers((prev) => ({ ...prev, primary: e }));
               handleSelectionChange("associatedMember", e?.value);
             }}
-            onInputChange={(e) => {
-              fetchPrimary(e);
-            }}
+            onInputChange={handlePrimarySearchInput}
           />
 
           <Select
             isSearchable
             classNamePrefix="react-select"
-            isLoading={selectedSecondary ? null : secondaryOptionLoading}
+            isLoading={isPrimaryMembersLoading}
             loadingMessage={() => "Loading member data..."}
             menuPortalTarget={_document?.body ?? null}
             options={primaryMembers}
             placeholder={
-              secondaryOptionLoading
+              isPrimaryMembersLoading
                 ? "Loading member data..."
                 : "Select secondary code..."
             }
@@ -727,20 +701,18 @@ console.log("validate email", isValidEmail(formData.email))
               setSelectedMembers((prev) => ({ ...prev, secondary: e }));
               handleSelectionChange("secondarCode", e?.value);
             }}
-            onInputChange={(e) => {
-              fetchPrimary(e);
-            }}
+            onInputChange={handlePrimarySearchInput}
           />
 
           <Select
             isSearchable
             classNamePrefix="react-select"
-            isLoading={selectedProposal ? null : proposalOptionLoading}
+            isLoading={isPrimaryMembersLoading}
             loadingMessage={() => "Loading member data..."}
             menuPortalTarget={_document?.body ?? null}
             options={primaryMembers}
             placeholder={
-              proposalOptionLoading
+              isPrimaryMembersLoading
                 ? "Loading member data..."
                 : "Select proposal code..."
             }
@@ -759,9 +731,7 @@ console.log("validate email", isValidEmail(formData.email))
               setSelectedMembers((prev) => ({ ...prev, proposal: e }));
               handleSelectionChange("proposalCode", e?.value);
             }}
-            onInputChange={(e) => {
-              fetchPrimary(e);
-            }}
+            onInputChange={handlePrimarySearchInput}
           />
 
           <Input
@@ -778,7 +748,7 @@ console.log("validate email", isValidEmail(formData.email))
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
-          <I18nProvider locale="en-IN">
+          <I18nProvider locale="en-GB">
             <DatePicker
               isRequired
               showMonthAndYearPickers
@@ -799,7 +769,7 @@ console.log("validate email", isValidEmail(formData.email))
           </I18nProvider>
 
           <div className="flex flex-col w-full">
-            <I18nProvider locale="en-IN">
+            <I18nProvider locale="en-GB">
               <DatePicker
                 isRequired
                 showMonthAndYearPickers
