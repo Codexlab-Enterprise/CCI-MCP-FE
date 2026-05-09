@@ -1,4 +1,4 @@
-FROM node:20-slim AS base
+FROM --platform=linux/amd64 node:20-slim AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable && corepack prepare yarn@1.22.22 --activate
