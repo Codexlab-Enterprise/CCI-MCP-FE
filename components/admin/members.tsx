@@ -8,7 +8,7 @@ import {
   Plus,
   XCircle,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import React, {
   ChangeEvent,
   useCallback,
@@ -60,8 +60,7 @@ function useDebounced<T>(value: T, delay = 450) {
 
 const Members = () => {
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  const pathname = usePathname();
+  const pathname = router.pathname;
   const _window = typeof window !== "undefined" ? window : null;
   const params = new URLSearchParams(_window?.location?.search);
   // State for filters

@@ -14,7 +14,7 @@ import { Input } from "@heroui/input";
 import { link as linkStyles } from "@heroui/theme";
 import NextLink from "next/link";
 import clsx from "clsx";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/router";
 import Image from "next/image";
 
 import { NavLinks } from "./navlinks";
@@ -23,7 +23,8 @@ import { siteConfig } from "@/config/site";
 import { HeartFilledIcon, SearchIcon } from "@/components/icons";
 
 export const Navbar = () => {
-  const pathname = usePathname();
+  const router = useRouter();
+  const pathname = router.pathname;
   const searchInput = (
     <Input
       aria-label="Search"

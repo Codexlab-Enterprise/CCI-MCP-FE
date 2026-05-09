@@ -1,7 +1,7 @@
 import { BreadcrumbItem, Breadcrumbs } from "@heroui/breadcrumbs";
 import { cn } from "@heroui/theme";
 import { Home } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import React from "react";
 
 interface BreadCrumbsComponentProps {

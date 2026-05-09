@@ -1,7 +1,7 @@
 import { Listbox, ListboxItem } from "@heroui/listbox";
 import { JSX, SVGProps } from "react";
 import NextLink from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import Image from "next/image";
 import { Button } from "@heroui/button";
 import { LogOut } from "lucide-react";
@@ -354,7 +354,7 @@ export const ListboxWrapper = ({ children }) => (
 
 export const Sidebar = () => {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = router.pathname;
 
   const handleLogout = async () => {
   try {
