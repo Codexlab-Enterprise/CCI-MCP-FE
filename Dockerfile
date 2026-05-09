@@ -4,10 +4,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
 FROM base AS deps
+ENV NODE_ENV=development
 COPY package.json ./
-RUN yarn install --non-interactive
+RUN yarn install --non-interactive --production=false
 
 FROM base AS builder
+ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN yarn build
