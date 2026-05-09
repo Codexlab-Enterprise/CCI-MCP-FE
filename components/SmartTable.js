@@ -21,7 +21,7 @@ import { Input } from "@heroui/input";
 import { Button, ButtonGroup } from "@heroui/button";
 import { subtitle, title } from "./primitives";
 import { Spinner } from "@heroui/spinner";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import { ScrollShadow } from "@heroui/react";
 
 export const SearchIcon = (props) => {
@@ -251,7 +251,7 @@ const SmartTables = ({
                     <Button
                       className="mx-3 px-10 py-7 rounded-xl "
                       onPress={() => {
-                        router.push(
+                        router?.push(
                           buttonLink.includes("/add") ||
                             buttonLink.includes("/form")
                             ? buttonLink

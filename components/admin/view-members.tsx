@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import Cookies from "js-cookie";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import { format } from "date-fns";
 
 import Loader from "../elements/Loader";
@@ -124,8 +124,8 @@ const INITIAL_FORM = {
 const ViewMembers = () => {
   const router = useRouter();
   // const { isReady, query } = router;
-  const query = router.query;
-  const isReady = router.isReady;
+  const query = router?.query ?? {};
+  const isReady = router?.isReady ?? true;
 
   const accessToken = useMemo(() => readAccessTokenFromCookie("user"), []);
   // const memberId = useMemo(() => query?.id ?? '', [query?.id]);

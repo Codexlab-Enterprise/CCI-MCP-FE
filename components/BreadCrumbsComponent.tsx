@@ -1,7 +1,7 @@
 import { BreadcrumbItem, Breadcrumbs } from "@heroui/breadcrumbs";
 import { cn } from "@heroui/theme";
 import { Home } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import React from "react";
 
 interface BreadCrumbsComponentProps {
@@ -20,7 +20,7 @@ const BreadCrumbsComponent: React.FC<BreadCrumbsComponentProps> = ({
       <Breadcrumbs
         className={cn("border rounded-lg p-2 mb-4 w-fit", className)}
       >
-        <BreadcrumbItem onClick={() => router.back()}>
+        <BreadcrumbItem onClick={() => router?.back()}>
           <Home size={16} />
         </BreadcrumbItem>
         <BreadcrumbItem>{title}</BreadcrumbItem>

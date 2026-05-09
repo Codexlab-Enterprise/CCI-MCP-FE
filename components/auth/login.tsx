@@ -1,6 +1,6 @@
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -99,7 +99,7 @@ const handleSubmit = (e: React.FormEvent) => {
         // }
         
         toast.success(res.data.message || "Login successful!");
-        router.push("/members");
+        router?.push("/members");
       }
     })
     .catch((err) => {

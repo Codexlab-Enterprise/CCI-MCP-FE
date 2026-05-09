@@ -1,7 +1,7 @@
 import { Listbox, ListboxItem } from "@heroui/listbox";
 import { JSX, SVGProps } from "react";
 import NextLink from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import Image from "next/image";
 import { Button } from "@heroui/button";
 import { LogOut } from "lucide-react";
@@ -354,7 +354,7 @@ export const ListboxWrapper = ({ children }) => (
 
 export const Sidebar = () => {
   const router = useRouter();
-  const pathname = router.pathname;
+  const pathname = router?.pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
 
   const handleLogout = async () => {
   try {
@@ -372,7 +372,7 @@ export const Sidebar = () => {
       
       // Redirect after a short delay
       setTimeout(() => {
-       router.push("/login");
+       router?.push("/login");
       }, 1000);
       
     } else {
@@ -384,7 +384,7 @@ export const Sidebar = () => {
     Cookies.remove("user");
     
     toast.error('Logout completed');
-    router.push("/login");
+    router?.push("/login");
   }
 };
   const iconClasses =

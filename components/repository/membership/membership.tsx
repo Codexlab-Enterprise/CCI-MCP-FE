@@ -1,6 +1,6 @@
 import { Button } from "@heroui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import React, { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import Cookies from "js-cookie";
@@ -188,14 +188,14 @@ const Membership = () => {
                 Add Membership
               </Button>
               {/* <Button
-                 onPress={() => router.push('/members/add')}
+                 onPress={() => router?.push('/members/add')}
                  className="bg-black py-7 text-white hover:bg-black/80"
                >
                 <Import className='w-5 hidden lg:block h-5' />
                  Import CSV
                 </Button>
                 <Button
-                 onPress={() => router.push('/members/add')}
+                 onPress={() => router?.push('/members/add')}
                  className=" py-7 bg-green-600 text-white  hover:bg-green-700"
                >
                 <FaFileExport className='w-5 h-5 hidden lg:block' />
