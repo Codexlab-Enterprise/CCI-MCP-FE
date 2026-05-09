@@ -2,7 +2,7 @@ FROM node:20-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install  --force
 COPY . .
 RUN npm run build
 FROM node:20-slim
