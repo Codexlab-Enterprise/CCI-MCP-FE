@@ -78,6 +78,18 @@ const PersonalInfo: React.FC<Props> = ({
     label: `${member?.strMemberCode ?? ""}-${member?.strFullName ?? ""}`,
   });
 
+  const displayPrimaryMembers = React.useMemo(() => {
+    const selectedOptions = [selectedPrimary, selectedSecondary, selectedProposal].filter(
+      Boolean,
+    ) as { value: string; label: string }[];
+
+    return [...primaryMembers, ...selectedOptions].filter(
+      (option, index, array) =>
+        option?.value &&
+        array.findIndex((item) => item.value === option.value) === index,
+    );
+  }, [primaryMembers, selectedPrimary, selectedSecondary, selectedProposal]);
+
   const countryOptions = React.useMemo(
     () =>
       countries.map((country) => ({
@@ -309,6 +321,12 @@ const PersonalInfo: React.FC<Props> = ({
     fetchData();
   }, [formData.associatedMember, formData.secondarCode, formData.proposalCode]);
 
+  useEffect(() => {
+    if (selectedMembers?.primary) setSelectedPrimary(selectedMembers.primary);
+    if (selectedMembers?.secondary) setSelectedSecondary(selectedMembers.secondary);
+    if (selectedMembers?.proposal) setSelectedProposal(selectedMembers.proposal);
+  }, [selectedMembers]);
+
   const today = new Date();
 
   const renderInput = (
@@ -464,7 +482,7 @@ const PersonalInfo: React.FC<Props> = ({
           <Combobox
             label="Primary Member"
             required
-            items={primaryMembers}
+            items={displayPrimaryMembers}
             value={selectedPrimary?.value ?? null}
             loading={isPrimaryMembersLoading}
             loadingText="Loading member data…"
@@ -480,7 +498,7 @@ const PersonalInfo: React.FC<Props> = ({
 
           <Combobox
             label="Secondary Code"
-            items={primaryMembers}
+            items={displayPrimaryMembers}
             value={selectedSecondary?.value ?? null}
             loading={isPrimaryMembersLoading}
             loadingText="Loading member data…"
@@ -499,7 +517,7 @@ const PersonalInfo: React.FC<Props> = ({
 
           <Combobox
             label="Proposal Code"
-            items={primaryMembers}
+            items={displayPrimaryMembers}
             value={selectedProposal?.value ?? null}
             loading={isPrimaryMembersLoading}
             loadingText="Loading member data…"
