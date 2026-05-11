@@ -308,14 +308,42 @@ const ViewForm: React.FC<Props> = ({
 
   // Helper function to calculate summary from installments
   const calculateSummary = (installments: any[]) => {
-    const totalPaid = installments.reduce((sum, item) => sum + item.PrincipalPaid, 0);
-    const totalOutstanding = installments.reduce((sum, item) => sum + item.TotalOutstanding, 0);
-    const totalInterest = installments.reduce((sum, item) => sum + item.InterestAccrued, 0);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    const toDueDate = (value: any) => {
+      if (!value) return null;
+
+      const parsed = new Date(value);
+
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const totalPaid = installments.reduce(
+      (sum, item) => sum + item.PrincipalPaid,
+      0,
+    );
+    const totalOutstanding = installments.reduce(
+      (sum, item) => sum + item.TotalOutstanding,
+      0,
+    );
+    const outstandingTillDate = installments.reduce((sum, item) => {
+      const dueDate = toDueDate(item.DueDate);
+
+      if (!dueDate || dueDate > today) return sum;
+
+      return sum + Math.max(0, Number(item.TotalOutstanding) || 0);
+    }, 0);
+    const totalInterest = installments.reduce(
+      (sum, item) => sum + item.InterestAccrued,
+      0,
+    );
     const totalGST = installments.reduce((sum, item) => sum + item.GSTAccrued, 0);
 
     return {
       totalPaid,
       totalOutstanding,
+      outstandingTillDate,
       totalInterest,
       totalGST,
       totalInstallments: installments.length,
@@ -1654,8 +1682,8 @@ const fetchExportData = async () => {
                   Outstanding Till Date
                 </p>
                 <p className="text-xl font-bold">
-                  {installmentSummary?.totalOutstanding
-                    ? `₹${installmentSummary.totalOutstanding.toLocaleString("en-IN")}`
+                  {installmentSummary?.outstandingTillDate
+                    ? `₹${installmentSummary.outstandingTillDate.toLocaleString("en-IN")}`
                     : "₹0"}
                 </p>
               </div>
