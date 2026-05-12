@@ -9,8 +9,8 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { useRouter } from "next/compat/router";
-import { DateValue } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import { DateValue } from "@internationalized/date";
 
 import PersonalInfo from "./form-components/personal-info";
 import MembershipDetails from "./form-components/membership-details";

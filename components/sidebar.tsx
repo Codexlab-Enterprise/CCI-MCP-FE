@@ -1,17 +1,17 @@
-import { Listbox, ListboxItem } from "@heroui/listbox";
 import { JSX, SVGProps } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/compat/router";
 import Image from "next/image";
-import { Button } from "@heroui/button";
 import { LogOut } from "lucide-react";
 import Cookies from "js-cookie";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { logoutAPI } from "@/api/auth";
 
 import { NavLinks } from "./navlinks";
 import Accordion from "./Accordion";
-import {  logoutAPI } from "@/api/auth";
-import { toast } from "sonner";
-// import { Accordion, AccordionItem } from "@heroui/accordion";
 
 export const BugIcon = (
   props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>,
@@ -410,53 +410,51 @@ export const Sidebar = () => {
         </NextLink>
         {/* <ThemeSwitch className="px-5" /> */}
       </div>
-      <Listbox
-        aria-label="Listbox menu with sections"
-        classNames={{
-          base: "max-w-xs",
-          list: "flex flex-col gap-3",
-        }}
+      <ul
+        aria-label="Sidebar navigation"
+        className="flex max-w-xs flex-col gap-3 p-2"
       >
-        {/* <ListboxSection title={"Menu"}> */}
-
         {NavLinks.map((link, index) => (
-          <>
+          <li key={`nav-${index}`}>
             {link.type === "dropdown" ? (
-              <>
-                <ListboxItem
-                  key={`accordion ${index}`}
-                  className="hover:bg-transparent"
-                >
-                  <Accordion
-                    description={link.description}
-                    icon={link.icon}
-                    parentLink={link.href}
-                    subItems={link.options}
-                    title={link.name}
-                  />
-                </ListboxItem>
-              </>
+              <div className="rounded-md">
+                <Accordion
+                  description={link.description}
+                  icon={link.icon}
+                  parentLink={link.href}
+                  subItems={link.options}
+                  title={link.name}
+                />
+              </div>
             ) : (
-              <ListboxItem
-                key={index}
-                className={`${link.href === pathname && "bg-zinc-200/90 dark:bg-zinc-500/40"} hover:bg-transparent active:bg-transparent`}
-                description={link.description}
+              <NextLink
                 href={link.href}
-                startContent={link.icon}
+                className={cn(
+                  "flex flex-col gap-0.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent",
+                  link.href === pathname &&
+                    "bg-zinc-200/90 dark:bg-zinc-500/40",
+                )}
               >
-                {link.name}
-              </ListboxItem>
+                <div className="flex items-center gap-2">
+                  {link.icon}
+                  <span>{link.name}</span>
+                </div>
+                {link.description && (
+                  <span className="text-xs text-muted-foreground">
+                    {link.description}
+                  </span>
+                )}
+              </NextLink>
             )}
-          </>
+          </li>
         ))}
-      </Listbox>
+      </ul>
       <div className="">
         <Button
-          className="w-full border-none hover:bg-none absolute bottom-2 flow-row-reverse flex justify-between"
+          className="w-full absolute bottom-2 left-0 right-0 mx-auto flex justify-between"
           variant="ghost"
-           onPress={handleLogout}
+          onClick={handleLogout}
         >
-          {" "}
           Logout <LogOut size={15} />
         </Button>
       </div>

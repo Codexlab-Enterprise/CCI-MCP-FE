@@ -1,8 +1,10 @@
-import { Input } from "@heroui/input";
 import React from "react";
 
-import InstallmentTable from "./installment-table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatDisplayDate } from "@/utils/date";
+
+import InstallmentTable from "./installment-table";
 
 interface InstallmentsProps {
   formData: any;
@@ -19,24 +21,15 @@ interface InstallmentsProps {
 }
 const Installments: React.FC<InstallmentsProps> = ({
   formData,
-  setFormData,
   handleContinue,
   handleBack,
   handleSubmitClick,
-  handleSelectionChange,
-  filterInstallmentOpn,
   handleChange,
   totalAmount,
 }) => {
-
   const handleInstallmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    // if(value < 1){
-    //   return;
-    // }
-
-    // Allow empty value for better UX
     if (value === "") {
       handleChange(e);
 
@@ -45,9 +38,8 @@ const Installments: React.FC<InstallmentsProps> = ({
 
     const numValue = parseInt(value);
 
-    // Prevent negative numbers and 0
     if (numValue < 1) {
-      return; // Don't update the state for invalid values
+      return;
     }
 
     handleChange(e);
@@ -63,56 +55,35 @@ const Installments: React.FC<InstallmentsProps> = ({
 
         <div className="space-y-4 w-full">
           <div className="grid grid-cols-2 gap-4 w-full">
-            {/* <SelectField
-                label="Select Installments"
-                disabled={formData.status!=="draft"}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="installments">Number of Installments*</Label>
+              <Input
                 id="installments"
-                value={new Set([String(formData.installments)])}
-                onChange={(selectedSet: Set<string>) => handleSelectionChange("installments", Array.from(selectedSet)[0] || "")}
-                options={filterInstallmentOpn.map((option) => {
-                  return { key: option.key, label: option.label };
-                })}
-              /> */}
+                className="w-full"
+                disabled={formData.status !== "draft"}
+                min={1}
+                name="installments"
+                placeholder="Enter number of installments"
+                type="number"
+                value={formData.installments || ""}
+                onChange={handleInstallmentChange}
+              />
+            </div>
 
-            <Input
-              className="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={formData.status !== "draft"}
-              label="Number of Installments*"
-              min={1}
-              name="installments"
-              placeholder="Enter number of installments"
-              type="number"
-              value={formData.installments || ""}
-              variant="bordered"
-              // onBlur={(e) => {
-              //   // Set to minimum 1 if empty or invalid on blur
-              //   if (!e.target.value || parseInt(e.target.value) < 1) {
-              //     handleChange({
-              //       ...e,
-              //       target: {
-              //         ...e.target,
-              //        value : "1",
-              //       },
-              //     });
-              //   }
-              // }}
-              onChange={handleInstallmentChange}
-            />
-
-            <Input
-              // type="date"
-              className="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              isDisabled={formData.status !== "draft"}
-              label="First Install. Date*"
-              name="dateOfInstallment"
-              placeholder="Select first installment date"
-              value={formatDisplayDate(formData.received_date, "")}
-              variant="bordered"
-              onChange={handleChange}
-            />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="dateOfInstallment">First Install. Date*</Label>
+              <Input
+                id="dateOfInstallment"
+                className="w-full"
+                disabled={formData.status !== "draft"}
+                name="dateOfInstallment"
+                placeholder="Select first installment date"
+                value={formatDisplayDate(formData.received_date, "")}
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
-          {/* Installment breakdown */}
           {formData.status == "draft" &&
             formData.installmentDetails &&
             formData.installmentDetails.length > 0 && (
@@ -124,23 +95,10 @@ const Installments: React.FC<InstallmentsProps> = ({
                   <p className="text-sm text-gray-500 mb-2">
                     Total Amount: {totalAmount}
                   </p>
-                  {/* <div className='flex gap-2'>
-                {isEdit ? (
-                  <>
-                  
-                  <button className='' onClick={()=>setIsEdit(false)}><Save className='h-5 text-green-600 w-5'/></button>
-                  <button className='' onClick={()=>{setIsEdit(false); setTotalAmount(675000)}}><Trash className='h-5 text-red-600 w-5'/></button>
-                  </>
-                ):(
-
-                  <button onClick={()=>setIsEdit(true)}><Edit className='h-5 text-blue-600 w-5'/></button>
-
-                )}
-                </div> */}
                 </div>
                 <p className="text-sm text-gray-500 mb-4">
                   All installments will be due in January or July based on your
-                  selected start date 
+                  selected start date
                 </p>
 
                 <InstallmentTable
@@ -158,28 +116,17 @@ const Installments: React.FC<InstallmentsProps> = ({
             Back
           </button>
           <div className="flex gap-2">
-            {/* {formData.status=='draft' &&(
-              <>
-              
-              <button onClick={handleSubmitClick} className='border text-gray-600 px-4  py-1 rounded-md hover:bg-gray-100'>
-              Save as draft
-            </button>
-              </>
-            )} */}
             {formData.status == "complete" && (
-              <>
-                <button
-                  className="border text-gray-600 px-4  py-1 rounded-md hover:bg-gray-100"
-                  onClick={handleSubmitClick}
-                >
-                  Save
-                </button>
-              </>
+              <button
+                className="border text-gray-600 px-4 py-1 rounded-md hover:bg-gray-100"
+                onClick={handleSubmitClick}
+              >
+                Save
+              </button>
             )}
             <button
               onClick={handleContinue}
-              // disabled={!formData.subType || !formData.type || loading}
-              className="bg-blue-600 text-white py-2 px-4 rounded-md disabled:bg-blue-600/50 hover:bg-blue-700 "
+              className="bg-blue-600 text-white py-2 px-4 rounded-md disabled:bg-blue-600/50 hover:bg-blue-700"
             >
               Continue
             </button>

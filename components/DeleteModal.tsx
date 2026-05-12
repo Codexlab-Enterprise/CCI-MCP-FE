@@ -1,7 +1,7 @@
-// import { Modal } from '@heroui/react'
 import React from "react";
-import { Button } from "@heroui/button";
 import { Trash } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 import ModalComponent from "./Modal";
 
@@ -16,7 +16,6 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   setOpen,
   handleDelete,
 }) => {
-  // const {onClose}=useDisclosure()
   return (
     <ModalComponent
       content={
@@ -26,25 +25,17 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
       }
       footerContent={
         <>
-          <Button
-            className="dark:bg-gray-950 bg-gray-500 font-semibold text-white dark:text-gray-500"
-            variant="ghost"
-            onPress={() => setOpen(false)}
-          >
+          <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button
-            className="dark:bg-red-950 bg-red-500 font-semibold text-white dark:text-red-500"
-            isLoading={false}
-            onPress={handleDelete}
-          >
-            <Trash className="h-4 w-4" /> Delete
+          <Button variant="destructive" onClick={handleDelete}>
+            <Trash className="mr-2 h-4 w-4" /> Delete
           </Button>
         </>
       }
       isOpen={open}
       setIsOpen={setOpen}
-      title={`Delete This Item`}
+      title="Delete This Item"
     />
   );
 };

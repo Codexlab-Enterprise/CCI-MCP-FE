@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: "standalone",
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const apiUrl2 = process.env.NEXT_PUBLIC_API_URL_2;
     const installmentUrl = process.env.NEXT_PUBLIC_INSTALLMENT;
 
-    return [
+    const rewrites = [
       apiUrl && {
         source: "/user/:path*",
         destination: `${apiUrl}/:path*`,
@@ -23,7 +24,9 @@ const nextConfig = {
         source: "/api/:path*",
         destination: `${apiUrl2}/v1/:path*`,
       },
-    ].filter(Boolean);
+    ];
+
+    return rewrites.filter(Boolean);
   },
 };
 

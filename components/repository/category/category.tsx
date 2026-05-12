@@ -1,4 +1,4 @@
-import { Button } from "@heroui/button";
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useRouter } from "next/compat/router";
 import React, { useEffect, useState } from "react";
@@ -221,7 +221,7 @@ const Category = () => {
           ExtraButtonCode={
             <div className="flex items-center gap-2">
               <Button
-                onPress={() => setIsAddModalOpen(true)}
+                onClick={() => setIsAddModalOpen(true)}
                 className="bg-blue-500 py-7 text-white hover:bg-blue-600"
               >
                 <Plus className="w-5 hidden lg:block h-5" />

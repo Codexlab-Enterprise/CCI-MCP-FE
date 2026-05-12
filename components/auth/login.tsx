@@ -1,12 +1,13 @@
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { useRouter } from "next/compat/router";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
-import { Eye, EyeClosed } from "lucide-react";
+import { Eye, EyeClosed, Loader2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { fadeIn, staggerContainer } from "@/utils/motion";
 import { login } from "@/api/auth";
 
@@ -18,97 +19,39 @@ const Login = () => {
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
   const [showPassword, setShowPassword] = useState(false);
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   // const toastId=toast.loading('Logging in...');
-  //   e.preventDefault();
-  //   if (!formData.email.trim() || !formData.password.trim()) {
-  //     toast.warning("Please fill in all required fields.");
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email.trim() || !formData.password.trim()) {
+      toast.warning("Please fill in all required fields.");
 
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   const res = await login(formData.email, formData.password);
+      return;
+    }
 
+    setLoading(true);
 
-  //   if (res.status === 200) {
-  //     Cookies.set("user", JSON.stringify(res?.data?.user));
-  //     _window.sessionStorage.setItem("user", JSON.stringify(res?.data?.user));
-  //     toast.success(res?.data?.message);
+    login(formData.email, formData.password)
+      .then((res) => {
+        if (res.status === 200) {
+          const userData = res.data.user;
 
-  //     if (res.data.accessToken) {
-  //       Cookies.set("accessToken", res.data.accessToken, { 
-  //         expires: 1 / 24 
-  //       });
-  //     }
-  //     if (res.data.refreshToken) {
-  //       Cookies.set("refreshToken", res.data.refreshToken, { 
-  //         expires: 7 
-  //       });
-  //     }
-      
-  //     setLoading(false);
-  //     router.push("/members");
-  //   } else {
-  //     toast.error(res?.response?.data?.message);
-  //     setLoading(false);
-  //   }
-  // };
+          Cookies.set("user", JSON.stringify(userData));
+          if (_window) {
+            _window.sessionStorage.setItem("user", JSON.stringify(userData));
+          }
 
-
-  // Add this before the login call
-
-const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!formData.email.trim() || !formData.password.trim()) {
-    toast.warning("Please fill in all required fields.");
-    return;
-  }
-  
-  setLoading(true);
-
-  login(formData.email, formData.password)
-    .then((res) => {
-
-      if (res.status === 200) {
-        // Store user info
-        const userData = res.data.user;
-        Cookies.set("user", JSON.stringify(userData));
-        if (_window) {
-          _window.sessionStorage.setItem("user", JSON.stringify(userData));
+          toast.success(res.data.message || "Login successful!");
+          router.push("/members");
         }
-        
-        // if (userData.accessToken) {
-        //   Cookies.set("accessToken", userData.accessToken, { 
-        //     expires: 0.5/1440, // 1 hour
-        //     path: '/',
-        //     secure: false, // false for HTTP localhost
-        //     sameSite: 'lax'
-        //   });
-        // }
-        
-        // if (userData.refreshToken) {
-        //   Cookies.set("refreshToken", userData.refreshToken, { 
-        //     expires: 0.5/1440, // 7 days
-        //     path: '/',
-        //     secure: false, // false for HTTP localhost
-        //     sameSite: 'lax'
-        //   });
-        // }
-        
-        toast.success(res.data.message || "Login successful!");
-        router?.push("/members");
-      }
-    })
-    .catch((err) => {
-      toast.error(err.response?.data?.message || "Login failed");
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-};
+      })
+      .catch((err) => {
+        toast.error(err.response?.data?.message || "Login failed");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   return (
     <motion.div
@@ -185,10 +128,13 @@ const handleSubmit = (e: React.FormEvent) => {
               variants={fadeIn("up", "tween", 0.6, 1)}
             >
               <form onSubmit={handleSubmit}>
-                <motion.div variants={fadeIn("up", "tween", 0.6, 1)}>
+                <motion.div
+                  className="flex flex-col gap-1.5"
+                  variants={fadeIn("up", "tween", 0.6, 1)}
+                >
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
-                    label={"Email"}
                     name="email"
                     placeholder="example@example.com"
                     type="email"
@@ -200,36 +146,35 @@ const handleSubmit = (e: React.FormEvent) => {
                 </motion.div>
 
                 <motion.div
-                  className="mt-6"
+                  className="mt-6 flex flex-col gap-1.5"
                   variants={fadeIn("up", "tween", 0.8, 1)}
                 >
-                  <Input
-                    endContent={
-                      <>
-                        <button
-                          aria-label="toggle password visibility"
-                          className="focus:outline-solid outline-transparent"
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeClosed className="text-2xl text-default-400 pointer-events-none" />
-                          ) : (
-                            <Eye className="text-2xl text-default-400 pointer-events-none" />
-                          )}
-                        </button>
-                      </>
-                    }
-                    id="password"
-                    label={"Password"}
-                    name="password"
-                    placeholder="Your Password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                  />
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      placeholder="Your Password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      className="pr-10"
+                    />
+                    <button
+                      aria-label="toggle password visibility"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeClosed className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                 </motion.div>
 
                 <motion.div
@@ -237,12 +182,13 @@ const handleSubmit = (e: React.FormEvent) => {
                   variants={fadeIn("up", "tween", 1, 1)}
                 >
                   <Button
-                    isLoading={loading}
                     type="submit"
+                    disabled={loading}
                     className="w-full px-4 py-2 tracking-wide text-white transition-colors duration-300 transform bg-blue-500 rounded-lg hover:bg-blue-400 focus:outline-none focus:bg-blue-400 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
-                    // whileHover={{ scale: 1.02 }}
-                    // whileTap={{ scale: 0.98 }}
                   >
+                    {loading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Sign in
                   </Button>
                 </motion.div>
@@ -251,7 +197,6 @@ const handleSubmit = (e: React.FormEvent) => {
           </motion.div>
         </motion.div>
       </div>
-      {/* <Toaster richColors /> */}
     </motion.div>
   );
 };
