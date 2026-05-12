@@ -28,6 +28,6 @@ const nextConfig = {
 
     return rewrites.filter(Boolean);
   },
-}
+};
 
 module.exports = nextConfig

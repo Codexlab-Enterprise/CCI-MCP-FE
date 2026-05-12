@@ -7,7 +7,7 @@ import {
   Plus,
   XCircle,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/compat/router";
 import React, {
   ChangeEvent,
   useCallback,
@@ -61,8 +61,7 @@ function useDebounced<T>(value: T, delay = 450) {
 
 const Members = () => {
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  const pathname = usePathname();
+  const pathname = router?.pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
   const _window = typeof window !== "undefined" ? window : null;
   const params = new URLSearchParams(_window?.location?.search);
   // State for filters
@@ -133,7 +132,7 @@ const Members = () => {
       }
 
       // Update the URL without page refresh
-      router.push(`${pathname}?${params.toString()}`);
+      router?.push(`${pathname}?${params.toString()}`);
     },
     [router, pathname],
   );
@@ -223,11 +222,11 @@ const Members = () => {
     fetchMembers(filters);
   }, [filters, fetchMembers]);
   const handleView = (id: string) => {
-    router.push(`/members/view/${id}`);
+    router?.push(`/members/view/${id}`);
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/members/edit/${id}`);
+    router?.push(`/members/edit/${id}`);
   };
 
   const handleDelete = (id: string) => {

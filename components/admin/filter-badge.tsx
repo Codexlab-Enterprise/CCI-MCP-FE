@@ -1,6 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 
 interface FilterBadgeProps {
   type: "category" | "membership" | "status";
@@ -53,7 +53,7 @@ const FilterBadge: React.FC<FilterBadgeProps> = ({
     params.set("pageSize", newFilters.pageSize.toString());
 
     // Update the URL
-    router.push(`/members?${params.toString()}`);
+    router?.push(`/members?${params.toString()}`);
   };
 
   // Color variants based on filter type

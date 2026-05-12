@@ -1,5 +1,5 @@
 import { Home } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/compat/router";
 import React from "react";
 
 import { cn } from "@/lib/utils";

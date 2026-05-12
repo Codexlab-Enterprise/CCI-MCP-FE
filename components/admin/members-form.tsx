@@ -461,7 +461,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
         await toast.promise(promise, {
           loading: "Please wait...",
           success: (data: any) => {
-            router.push("/members");
+            router?.push("/members");
 
             return data?.data?.message || "Saved";
           },
@@ -559,7 +559,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
       toast.promise(res, {
         loading: "Please wait...",
         success: (data: any) => {
-          router.push("/members");
+      router?.push("/members");
 
           return data?.data?.message || "Saved";
         },

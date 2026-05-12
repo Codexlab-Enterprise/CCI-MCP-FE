@@ -1,6 +1,6 @@
 import { JSX, SVGProps } from "react";
 import NextLink from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/compat/router";
 import Image from "next/image";
 import { LogOut } from "lucide-react";
 import Cookies from "js-cookie";
@@ -354,7 +354,7 @@ export const ListboxWrapper = ({ children }) => (
 
 export const Sidebar = () => {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = router?.pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
 
   const handleLogout = async () => {
   try {
@@ -372,7 +372,7 @@ export const Sidebar = () => {
       
       // Redirect after a short delay
       setTimeout(() => {
-       router.push("/login");
+       router?.push("/login");
       }, 1000);
       
     } else {
@@ -384,7 +384,7 @@ export const Sidebar = () => {
     Cookies.remove("user");
     
     toast.error('Logout completed');
-    router.push("/login");
+    router?.push("/login");
   }
 };
   const iconClasses =
