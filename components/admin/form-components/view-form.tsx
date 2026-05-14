@@ -46,6 +46,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 import TransactionTable from "./transaction-table";
