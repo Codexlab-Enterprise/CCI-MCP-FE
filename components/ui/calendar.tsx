@@ -23,12 +23,12 @@ function Calendar({
         month_caption: "flex justify-center pt-1 relative items-center h-8",
         caption_label: "text-sm font-medium",
         dropdowns: "flex items-center gap-1",
-        dropdown_root: "relative inline-flex items-center",
+        dropdown_root: "relative inline-flex items-center z-0",
         dropdown:
           "absolute inset-0 z-10 cursor-pointer appearance-none bg-transparent opacity-0",
         years_dropdown: "",
         months_dropdown: "",
-        nav: "flex items-center justify-between absolute inset-x-1 top-1",
+        nav: "flex items-center justify-between absolute inset-x-1 top-1 z-20",
         button_previous: cn(
           buttonVariants({ variant: "outline" }),
           "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
