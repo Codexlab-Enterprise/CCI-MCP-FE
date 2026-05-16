@@ -1712,6 +1712,7 @@ const ViewForm: React.FC<Props> = ({
                                   <DateField
                                     compact
                                     showShortcuts={false}
+                                    allowInput={false}
                                     disabled={installment.Status === "PAID"}
                                     maxDate={new Date()}
                                     value={
