@@ -25,6 +25,7 @@ const nextConfig = {
         destination: `${apiUrl2}/v1/:path*`,
       },
     ];
+    console.log('rewrites',rewrites);
 
     return rewrites.filter(Boolean);
   },

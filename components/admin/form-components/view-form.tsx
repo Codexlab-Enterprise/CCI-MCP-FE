@@ -46,6 +46,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 import TransactionTable from "./transaction-table";
@@ -359,8 +360,75 @@ const ViewForm: React.FC<Props> = ({
     };
   };
 
+  const updateInstallmentLocally = (installmentId: number, patch: any) => {
+    setFormData((prev: any) => {
+      const nextInstallments = (prev.installmentDetails ?? []).map((inst: any) =>
+        Number(inst.InstallmentId) === Number(installmentId)
+          ? {
+              ...inst,
+              ...patch,
+              InstallmentId: Number(installmentId),
+              id: Number(installmentId),
+            }
+          : inst,
+      );
 
-const fetchExportData = async () => {
+      setInstallmentSummary(calculateSummary(nextInstallments));
+
+      return {
+        ...prev,
+        installmentDetails: nextInstallments,
+      };
+    });
+  };
+
+  const patchInstallmentLocally = (
+    installmentId: number,
+    patch: Record<string, any>,
+  ) => {
+    setFormData((prev: any) => {
+      const nextInstallments = (prev.installmentDetails ?? []).map((inst: any) =>
+        Number(inst.InstallmentId) === Number(installmentId)
+          ? {
+              ...inst,
+              ...patch,
+              InstallmentId: Number(installmentId),
+              id: Number(installmentId),
+            }
+          : inst,
+      );
+
+      setInstallmentSummary(calculateSummary(nextInstallments));
+
+      return {
+        ...prev,
+        installmentDetails: nextInstallments,
+      };
+    });
+  };
+
+  const numericOrUndefined = (value: any) => {
+    if (value === null || value === undefined || value === "") return undefined;
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : undefined;
+  };
+
+  const extractInterestPayload = (response: any) => {
+    const payload =
+      response?.data?.data?.installment ??
+      response?.data?.data?.item ??
+      response?.data?.installment ??
+      response?.data?.item ??
+      response?.data?.data ??
+      response?.data;
+
+    return payload && typeof payload === "object" ? payload : null;
+  };
+
+
+  const fetchExportData = async () => {
   try {
     if (!formData.memberShipId) {
       return;
@@ -540,32 +608,37 @@ const fetchExportData = async () => {
   const handleDueDateChange = async (installmentId: number, date: any | null) => {
     if (!date) return;
 
-    try {
-      const dueDate = date.toString(); // Format: YYYY-MM-DD
+    const nextDueDate = `${date.toString()}T00:00:00.000Z`;
+    const previousInstallment = formData.installmentDetails?.find(
+      (inst: any) => Number(inst.InstallmentId) === Number(installmentId),
+    );
 
+    try {
       // Update local state immediately
-      setFormData((prev: any) => ({
-        ...prev,
-        installmentDetails: prev.installmentDetails.map((inst: any) =>
-          inst.InstallmentId === installmentId
-            ? { ...inst, DueDate: `${dueDate}T00:00:00.000Z` }
-            : inst
-        )
-      }));
+      updateInstallmentLocally(installmentId, {
+        DueDate: nextDueDate,
+        CalculatedAsOf: nextDueDate,
+        LastInterestCalcDate: nextDueDate,
+      });
 
       // Call API to update due date
-      const response = await updateInstallments(installmentId, { dueDate: `${dueDate}T00:00:00.000Z` });
+      const response = await updateInstallments(installmentId, {
+        dueDate: nextDueDate,
+      });
 
       if (response.status === 200) {
         toast.success('Due date updated successfully');
-        await fetchInstallments();
       } else {
+        if (previousInstallment) {
+          updateInstallmentLocally(installmentId, previousInstallment);
+        }
         toast.error('Failed to update due date');
-        await fetchInstallments();
       }
     } catch (error) {
+      if (previousInstallment) {
+        updateInstallmentLocally(installmentId, previousInstallment);
+      }
       toast.error('Error updating due date');
-      await fetchInstallments();
     }
   };
 
@@ -771,8 +844,49 @@ const fetchExportData = async () => {
       const interestResponse = await interestCalculate(installmentId, asOfDate);
 
       if (interestResponse.status === 200) {
-        // Refresh installments data to get updated interest calculations
-        await fetchInstallments();
+        const payload = extractInterestPayload(interestResponse);
+
+        if (payload) {
+          patchInstallmentLocally(installmentId, {
+            DueDate: payload.DueDate ?? `${asOfDate}T00:00:00.000Z`,
+            CalculatedAsOf:
+              payload.CalculatedAsOf ?? `${asOfDate}T00:00:00.000Z`,
+            LastInterestCalcDate:
+              payload.LastInterestCalcDate ??
+              payload.interest_calculation_date ??
+              `${asOfDate}T00:00:00.000Z`,
+            PrincipalPaid: numericOrUndefined(
+              payload.PrincipalPaid ?? payload.principalPaid,
+            ),
+            PrincipalOutstanding: numericOrUndefined(
+              payload.PrincipalOutstanding ?? payload.principalOutstanding,
+            ),
+            InterestAccrued: numericOrUndefined(
+              payload.InterestAccrued ?? payload.interestAccrued,
+            ),
+            InterestPaid: numericOrUndefined(payload.InterestPaid ?? payload.interestPaid),
+            InterestOutstanding: numericOrUndefined(
+              payload.InterestOutstanding ?? payload.interestOutstanding,
+            ),
+            GSTAccrued: numericOrUndefined(payload.GSTAccrued ?? payload.gstAccrued),
+            GSTPaid: numericOrUndefined(payload.GSTPaid ?? payload.gstPaid),
+            GSTOutstanding: numericOrUndefined(
+              payload.GSTOutstanding ?? payload.gstOutstanding,
+            ),
+            TotalOutstanding: numericOrUndefined(
+              payload.TotalOutstanding ?? payload.totalOutstanding,
+            ),
+            MonthsProrated: numericOrUndefined(
+              payload.MonthsProrated ?? payload.monthsProrated,
+            ),
+            MonthsRounded: numericOrUndefined(
+              payload.MonthsRounded ?? payload.monthsRounded,
+            ),
+            InterestPctOfPrincipal: numericOrUndefined(
+              payload.InterestPctOfPrincipal ?? payload.interestPctOfPrincipal,
+            ),
+          });
+        }
 
         // Show success message
         toast.success(`Interest calculated successfully for ${asOfDate}`);
