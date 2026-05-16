@@ -74,6 +74,7 @@ export const DateField: React.FC<DateFieldProps> = ({
 
   const dateValue = React.useMemo(() => parseValue(value), [value]);
   const formattedDisplay = dateValue ? format(dateValue, DISPLAY_FORMAT) : "";
+  const currentStorageValue = dateValue ? format(dateValue, STORAGE_FORMAT) : "";
 
   const [inputValue, setInputValue] = React.useState(formattedDisplay);
 
@@ -95,6 +96,7 @@ export const DateField: React.FC<DateFieldProps> = ({
   const handleInputBlur = () => {
     if (!allowInput) return;
     if (inputValue.trim() === "") {
+      if (!currentStorageValue) return;
       commit(undefined);
 
       return;
@@ -102,6 +104,14 @@ export const DateField: React.FC<DateFieldProps> = ({
     const parsed = parseValue(inputValue);
 
     if (parsed && isValid(parsed)) {
+      const nextStorageValue = format(parsed, STORAGE_FORMAT);
+
+      if (nextStorageValue === currentStorageValue) {
+        setInputValue(formattedDisplay);
+
+        return;
+      }
+
       commit(parsed);
     } else {
       setInputValue(formattedDisplay);
