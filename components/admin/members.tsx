@@ -477,10 +477,12 @@ const Members = () => {
 
   const handleExport = async () => {
     const toastId = toast.loading("Exporting...");
+    const normalizeNullable = (value: any) =>
+      value === "" || value === undefined ? null : value;
     const payload = {
-      CategoryID: filters.category,
-      membership_Type: filters.membership,
-      installment_status: filters.status,
+      CategoryId: normalizeNullable(filters.category),
+      membership_type: normalizeNullable(filters.membership),
+      installment_status: normalizeNullable(filters.status),
     };
 
     try {
