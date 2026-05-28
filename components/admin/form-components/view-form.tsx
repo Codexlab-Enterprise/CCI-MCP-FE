@@ -1177,6 +1177,10 @@ const ViewForm: React.FC<Props> = ({
   };
 
   const isFullyPaid = installmentSummary?.totalOutstanding === 0;
+  const pendingAmount = Math.max(
+    0,
+    Number(formData.amount || 0) - Number(paidAmount || 0),
+  );
 
   const fullName = [formData.firstName, formData.midName, formData.lastname]
     .filter(Boolean)
@@ -1303,9 +1307,7 @@ const ViewForm: React.FC<Props> = ({
               ) : (
                 <p className="mt-1 text-2xl font-bold text-amber-600">
                   ₹
-                  {(installmentSummary?.totalOutstanding ?? 0).toLocaleString(
-                    "en-IN",
-                  )}
+                  {pendingAmount.toLocaleString("en-IN")}
                 </p>
               )}
             </div>
