@@ -454,19 +454,17 @@ const MembersForm: React.FC<MembersFormProps> = ({
 
       try {
         setLoading(true);
-        const promise = Promise.resolve(
-          handleSubmit({ ...formData, status: "complete" }),
+        const toastId = toast.loading("Please wait...");
+        const data = await handleSubmit({ ...formData, status: "complete" });
+        toast.success(data?.data?.message || "Saved", { id: toastId });
+        router?.push("/members");
+      } catch (err: any) {
+        toast.dismiss();
+        toast.error(
+          err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            "MCP No. already exists",
         );
-
-        await toast.promise(promise, {
-          loading: "Please wait...",
-          success: (data: any) => {
-            router?.push("/members");
-
-            return data?.data?.message || "Saved";
-          },
-          error: (err: any) => err?.response?.data?.error || "Failed",
-        });
       } finally {
         setLoading(false);
         submitLockRef.current = false;
@@ -554,17 +552,17 @@ const MembersForm: React.FC<MembersFormProps> = ({
     if (!validateStep()) return;
     try {
       setLoading(true);
+      const toastId = toast.loading("Please wait...");
       const res = await handleSubmit({ ...formData, status: "draft" });
-
-      toast.promise(res, {
-        loading: "Please wait...",
-        success: (data: any) => {
+      toast.success(res?.data?.message || "Saved", { id: toastId });
       router?.push("/members");
-
-          return data?.data?.message || "Saved";
-        },
-        error: (err: any) => err?.response?.data?.error || "Failed",
-      });
+    } catch (err: any) {
+      toast.dismiss();
+      toast.error(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "MCP No. already exists",
+      );
     } finally {
       setLoading(false);
     }
@@ -683,7 +681,7 @@ const MembersForm: React.FC<MembersFormProps> = ({
               handleChange={handleChange}
               handleContinue={handleContinue}
               handleSelectionChange={handleSelectionChange}
-              handleSubmitClick={handleContinue}
+              handleSubmitClick={handleSubmitClick}
               setFormData={setFormData}
               totalAmount={totalAmount}
             />

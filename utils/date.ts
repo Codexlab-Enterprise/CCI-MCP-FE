@@ -1,4 +1,4 @@
-import { format, isValid, parse, parseISO } from "date-fns";
+import { addYears, format, isValid, parse, parseISO } from "date-fns";
 
 export const DISPLAY_DATE_FORMAT = "dd-MM-yyyy";
 
@@ -84,4 +84,15 @@ export function calculateDetailedAge(
     parts.push(`${days} day${days !== 1 ? "s" : ""}`);
 
   return parts.join(" ");
+}
+
+export function getDateAfterYears(
+  dob: string | Date | null | undefined,
+  yearsToAdd: number,
+): string {
+  const dobDate = toDate(dob);
+
+  if (!dobDate || !Number.isFinite(yearsToAdd)) return "";
+
+  return format(addYears(dobDate, yearsToAdd), DISPLAY_DATE_FORMAT);
 }

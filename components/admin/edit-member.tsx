@@ -185,13 +185,9 @@ const EditAdmin = () => {
     let res: any;
 
     if (status == "draft") {
-      res = await createMember(data)
-        .then((res) => res)
-        .catch((err) => err);
+      res = await createMember(data);
     } else {
-      res = await updateMember(id, data)
-        .then((res) => res)
-        .catch((err) => err);
+      res = await updateMember(id, data);
     }
 
     return res;

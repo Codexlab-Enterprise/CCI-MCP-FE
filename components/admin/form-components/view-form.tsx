@@ -52,7 +52,11 @@ import { cn } from "@/lib/utils";
 import TransactionTable from "./transaction-table";
 
 import api from "@/utils/axios";
-import { calculateDetailedAge, formatDisplayDate } from "@/utils/date";
+import {
+  calculateDetailedAge,
+  formatDisplayDate,
+  getDateAfterYears,
+} from "@/utils/date";
 import {
   addtransaction,
   assignballet,
@@ -1362,6 +1366,10 @@ const ViewForm: React.FC<Props> = ({
                 label="Date of Birth"
                 icon={<CalendarIcon className="h-3.5 w-3.5" />}
                 value={formatDisplayDate(formData.date)}
+              />
+              <InfoRow
+                label="21 Years Completion Date"
+                value={getDateAfterYears(formData.date, 21)}
               />
               <InfoRow
                 label="Age on Received"
