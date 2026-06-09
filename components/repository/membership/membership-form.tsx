@@ -1,7 +1,10 @@
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
 import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { Loader2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Props {
   onSubmit: (data: any) => void;
@@ -35,21 +38,25 @@ const MembershipForm: React.FC<Props> = ({ onSubmit, isEdit, data, id }) => {
         control={control}
         name="name"
         render={({ field }) => (
-          <Input
-            isRequired
-            label="Name"
-            value={field.value}
-            onValueChange={field.onChange} // HeroUI's change handler
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="name">
+              Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="name"
+              value={field.value}
+              onChange={(e) => field.onChange(e.target.value)}
+            />
+          </div>
         )}
         rules={{ required: true }}
       />
       <Button
         className="flex justify-self-end"
-        color="primary"
-        isLoading={isSubmitting}
+        disabled={isSubmitting}
         type="submit"
       >
+        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {isEdit ? "Update" : "Add"}
       </Button>
     </form>

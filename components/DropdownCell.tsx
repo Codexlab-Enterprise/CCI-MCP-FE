@@ -1,11 +1,18 @@
 import React from "react";
-import { Select, SelectItem } from "@heroui/select";
+
+import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DropdownCellProps {
   handleOptionChange: () => void;
   selectedKey: string;
   options: any[];
-  // colorSelectionCondition?:()=>string
 }
 const DropdownCell: React.FC<DropdownCellProps> = ({
   handleOptionChange,
@@ -14,41 +21,35 @@ const DropdownCell: React.FC<DropdownCellProps> = ({
 }) => {
   const [selectedKeys, setSelectedKeys] = React.useState(selectedKey);
 
-  const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedKeys(e.target.value);
+  const handleSelectionChange = (value: string) => {
+    setSelectedKeys(value);
     handleOptionChange();
   };
 
-  const dropDownColor = () => {
-    if (selectedKeys === "Admitted") {
-      return "success";
-    }
-    if (selectedKeys === "Deceased") {
-      return "danger";
-    }
-    if (selectedKeys === "Discharged") {
-      return "primary";
-    }
-    if (selectedKeys === "Success" || selectedKeys === "Active") {
-      return "success";
-    }
-    if (selectedKeys === "Failed" || selectedKeys === "Inactive") {
-      return "danger";
-    }
+  const triggerColor = () => {
+    if (selectedKeys === "Admitted") return "bg-green-100 text-green-900";
+    if (selectedKeys === "Deceased") return "bg-red-100 text-red-900";
+    if (selectedKeys === "Discharged") return "bg-blue-100 text-blue-900";
+    if (selectedKeys === "Success" || selectedKeys === "Active")
+      return "bg-green-100 text-green-900";
+    if (selectedKeys === "Failed" || selectedKeys === "Inactive")
+      return "bg-red-100 text-red-900";
+
+    return "";
   };
 
   return (
-    <Select
-      className="max-w-[9rem] m-0"
-      color={dropDownColor()}
-      // selectorIcon={<></>}
-
-      selectedKeys={[selectedKeys]}
-      onChange={handleSelectionChange}
-    >
-      {options.map((opn) => (
-        <SelectItem key={opn}>{opn}</SelectItem>
-      ))}
+    <Select value={selectedKeys} onValueChange={handleSelectionChange}>
+      <SelectTrigger className={cn("max-w-[9rem] m-0", triggerColor())}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opn) => (
+          <SelectItem key={opn} value={opn}>
+            {opn}
+          </SelectItem>
+        ))}
+      </SelectContent>
     </Select>
   );
 };

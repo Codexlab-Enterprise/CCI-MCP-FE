@@ -1,4 +1,3 @@
-import { Button } from "@heroui/button";
 import {
   Check,
   ChevronLeft,
@@ -8,7 +7,7 @@ import {
   Plus,
   XCircle,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/compat/router";
 import React, {
   ChangeEvent,
   useCallback,
@@ -19,7 +18,9 @@ import React, {
 } from "react";
 import { FaFileExport } from "react-icons/fa6";
 import Cookies from "js-cookie";
-import { cn } from "@heroui/theme";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { formatDisplayDate } from "@/utils/date";
 
 import { toast } from "sonner";
@@ -60,8 +61,7 @@ function useDebounced<T>(value: T, delay = 450) {
 
 const Members = () => {
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  const pathname = usePathname();
+  const pathname = router?.pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
   const _window = typeof window !== "undefined" ? window : null;
   const params = new URLSearchParams(_window?.location?.search);
   // State for filters
@@ -132,7 +132,7 @@ const Members = () => {
       }
 
       // Update the URL without page refresh
-      router.push(`${pathname}?${params.toString()}`);
+      router?.push(`${pathname}?${params.toString()}`);
     },
     [router, pathname],
   );
@@ -222,11 +222,11 @@ const Members = () => {
     fetchMembers(filters);
   }, [filters, fetchMembers]);
   const handleView = (id: string) => {
-    router.push(`/members/view/${id}`);
+    router?.push(`/members/view/${id}`);
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/members/edit/${id}`);
+    router?.push(`/members/edit/${id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -477,10 +477,12 @@ const Members = () => {
 
   const handleExport = async () => {
     const toastId = toast.loading("Exporting...");
+    const normalizeNullable = (value: any) =>
+      value === "" || value === undefined ? null : value;
     const payload = {
-      CategoryID: filters.category,
-      membership_Type: filters.membership,
-      installment_status: filters.status,
+      CategoryId: normalizeNullable(filters.category),
+      membership_type: normalizeNullable(filters.membership),
+      installment_status: normalizeNullable(filters.status),
     };
 
     try {
@@ -579,7 +581,7 @@ const Members = () => {
             <div className="flex items-center gap-2">
               <Button
                 className="bg-blue-500 py-7 text-white hover:bg-blue-600"
-                onPress={() => {
+                onClick={() => {
                   window.location.href = "/members/add";
                 }}
               >
@@ -595,14 +597,14 @@ const Members = () => {
               />
               <Button
                 className="bg-black py-7 text-white hover:bg-black/80"
-                onPress={handleImport}
+                onClick={handleImport}
               >
                 <Import className="w-5 block h-5" />
                 <span className="hidden lg:block">Import CSV</span>
               </Button>
               <Button
                 className="py-7 bg-green-600 text-white hover:bg-green-700"
-                onPress={handleExport}
+                onClick={handleExport}
               >
                 <FaFileExport className="w-5 h-5 block" />
                 <span className="hidden lg:block">Export</span>

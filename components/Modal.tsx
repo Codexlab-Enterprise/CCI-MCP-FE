@@ -1,14 +1,14 @@
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/modal";
 import React, { ReactNode } from "react";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 interface ModalProps {
-  // isFooter:boolean;
   isOpen: boolean;
   content: ReactNode;
   title?: string;
@@ -23,17 +23,17 @@ const ModalComponent: React.FC<ModalProps> = ({
   content,
 }) => {
   return (
-    <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">{title}</ModalHeader>
-            <ModalBody>{content}</ModalBody>
-            <ModalFooter>{footerContent}</ModalFooter>
-          </>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent>
+        {title && (
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
         )}
-      </ModalContent>
-    </Modal>
+        <div>{content}</div>
+        {footerContent && <DialogFooter>{footerContent}</DialogFooter>}
+      </DialogContent>
+    </Dialog>
   );
 };
 

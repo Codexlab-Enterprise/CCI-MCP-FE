@@ -1,4 +1,4 @@
-import { cn } from "@heroui/theme";
+import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import React from "react";
 import { BiSolidCricketBall } from "react-icons/bi";

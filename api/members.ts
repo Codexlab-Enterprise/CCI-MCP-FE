@@ -41,14 +41,9 @@ export const getPrimaryMembers = async (
 
 export const createMember = async (data: any) => {
   const access = JSON.parse(Cookies.get("user")).accessToken;
-  const res = await api
-    .post("/SecondaryMember/add", data, {
-      headers: { Authorization: `Bearer ${access}` },
-    })
-    .then((res) => res)
-    .catch((err) => err);
-
-  return res;
+  return api.post("/SecondaryMember/add", data, {
+    headers: { Authorization: `Bearer ${access}` },
+  });
 };
 
 export const generateID = async () => {
@@ -62,14 +57,9 @@ export const generateID = async () => {
 
 export const updateMember = async (id: string, data: any) => {
   const access = JSON.parse(Cookies.get("user")).accessToken;
-  const res = await api
-    .put(`/SecondaryMember/${id}`, data, {
-      headers: { Authorization: `Bearer ${access}` },
-    })
-    .then((res) => res)
-    .catch((err) => err);
-
-  return res;
+  return api.put(`/SecondaryMember/${id}`, data, {
+    headers: { Authorization: `Bearer ${access}` },
+  });
 };
 
 export const getInstallments = async (access: string, id: any) => {

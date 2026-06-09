@@ -1,21 +1,20 @@
-import { Html, Head, Main, NextScript } from "next/document";
+import Document, { Html, Head, Main, NextScript, DocumentContext } from "next/document";
 import clsx from "clsx";
 
-import { fontSans } from "@/config/fonts";
+export default class CustomDocument extends Document {
+  static async getInitialProps(ctx: DocumentContext) {
+    return Document.getInitialProps(ctx);
+  }
 
-export default function Document() {
-  return (
-    <Html className="" lang="en">
-      <Head />
-      <body
-        className={clsx(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable,
-        )}
-      >
-        <Main />
-        <NextScript />
-      </body>
-    </Html>
-  );
+  render() {
+    return (
+      <Html className="" lang="en">
+        <Head />
+        <body className={clsx("min-h-screen bg-background font-sans antialiased")}>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
 }

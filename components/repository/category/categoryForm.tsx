@@ -1,9 +1,11 @@
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { Loader2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import SearchableDropdown from "@/components/elements/SearchNSelect";
 import { getMemberType } from "@/api/member-type";
 import { getCategoryByID } from "@/api/category";
@@ -21,13 +23,7 @@ interface MemberTypeOption {
   label: string;
 }
 
-const CategoryForm: React.FC<Props> = ({
-  onSubmit,
-  id,
-  isEdit,
-  data,
-  setSelectedId,
-}) => {
+const CategoryForm: React.FC<Props> = ({ onSubmit, id, isEdit }) => {
   const [membershipOptions, setMembershipOptions] = useState<
     MemberTypeOption[]
   >([]);
@@ -37,19 +33,12 @@ const CategoryForm: React.FC<Props> = ({
   const access = Cookies.get("user")
     ? JSON.parse(Cookies.get("user"))?.accessToken
     : null;
-  // const {onClose, }=useDisclosure();
-
-  // const foundCategory = data && data.find((item: any) => item.C_ID === id);
-  // const initialMembership = foundCategory
-  //   ? { id: foundCategory.ID, label: foundCategory.MembershipType }
-  //   : null;
 
   const {
     handleSubmit,
     setValue,
     control,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm({
     defaultValues: {
       name: "",
@@ -96,7 +85,6 @@ const CategoryForm: React.FC<Props> = ({
         setValue("name", data.Name);
         setValue("membership_type", data.Membership_Type);
         setValue("price", data.Price);
-      } else {
       }
     } finally {
       setCategoryLoading(false);
@@ -108,30 +96,36 @@ const CategoryForm: React.FC<Props> = ({
   }, [searchQuery]);
 
   useEffect(() => {
-    if (isEdit) {
+    if (isEdit && id) {
       fetchCategoryByID(id);
     }
   }, [isEdit]);
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      {/* Name Field */}
       <Controller
         control={control}
         name="name"
         render={({ field }) => (
-          <Input
-            isRequired
-            errorMessage={errors.name?.message as string}
-            label="Name"
-            value={field.value}
-            onValueChange={field.onChange}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="name">
+              Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="name"
+              value={field.value}
+              onChange={(e) => field.onChange(e.target.value)}
+            />
+            {errors.name?.message && (
+              <p className="text-xs text-destructive">
+                {errors.name.message as string}
+              </p>
+            )}
+          </div>
         )}
         rules={{ required: "Name is required" }}
       />
 
-      {/* Membership Field */}
       <Controller
         control={control}
         name="membership_type"
@@ -140,12 +134,8 @@ const CategoryForm: React.FC<Props> = ({
             (item: any) => item.id == field.value,
           );
 
-
           return (
             <div>
-              {/* <label className="block text-sm font-medium text-gray-700 mb-1">
-              Membership <span className="text-red-500">*</span>
-            </label> */}
               <SearchableDropdown
                 errorMessage={errors.membership_type?.message as string}
                 handleChange={(option) => {
@@ -168,19 +158,26 @@ const CategoryForm: React.FC<Props> = ({
         rules={{ required: "Membership is required" }}
       />
 
-      {/* Price Field */}
       <Controller
         control={control}
         name="price"
         render={({ field }) => (
-          <Input
-            isRequired
-            errorMessage={errors.price?.message as string}
-            label="Price"
-            type="number"
-            value={field.value}
-            onValueChange={field.onChange}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="price">
+              Price <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="price"
+              type="number"
+              value={field.value}
+              onChange={(e) => field.onChange(e.target.value)}
+            />
+            {errors.price?.message && (
+              <p className="text-xs text-destructive">
+                {errors.price.message as string}
+              </p>
+            )}
+          </div>
         )}
         rules={{
           required: "Price is required",
@@ -191,10 +188,12 @@ const CategoryForm: React.FC<Props> = ({
 
       <Button
         className="flex justify-self-end"
-        color="primary"
-        isLoading={isSubmitting || categoryLoading}
+        disabled={isSubmitting || categoryLoading}
         type="submit"
       >
+        {(isSubmitting || categoryLoading) && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
         {isEdit ? "Update" : "Add"}
       </Button>
     </form>

@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import Cookies from "js-cookie";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import { format } from "date-fns";
 
 import Loader from "../elements/Loader";
@@ -78,6 +78,9 @@ function memberToForm(m: any = {}, installmentsList = []) {
     memberShipId: normalizeCode(items?.secondry_membership_ID),
     nationality: items?.nationality || "",
     subType: items?.membership_Type || { id: "", label: "" },
+    associatedMemberName: items?.associated_member_name || "",
+    secondaryCodeName: items?.secondary_code_name || "",
+    proposalCodeName: items?.proposal_code_name || "",
     installments: items?.Number_of_installment ?? "",
     amount: items?.membership_Amount ?? 0,
     dateOfInstallment: fmt(items?.first_installment_data),
@@ -116,6 +119,9 @@ const INITIAL_FORM = {
   image: "",
   amount: 0,
   received_date: "",
+  associatedMemberName: "",
+  secondaryCodeName: "",
+  proposalCodeName: "",
 };
 
 /** -------------------------------
@@ -124,8 +130,8 @@ const INITIAL_FORM = {
 const ViewMembers = () => {
   const router = useRouter();
   // const { isReady, query } = router;
-  const query = router.query;
-  const isReady = router.isReady;
+  const query = router?.query ?? {};
+  const isReady = router?.isReady ?? true;
 
   const accessToken = useMemo(() => readAccessTokenFromCookie("user"), []);
   // const memberId = useMemo(() => query?.id ?? '', [query?.id]);

@@ -1,5 +1,7 @@
-import { Input } from "@heroui/input";
 import React from "react";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface TextFieldProps {
   label: string;
@@ -19,15 +21,11 @@ const TextField: React.FC<TextFieldProps> = ({
   placeholder,
   disabled,
 }) => (
-  <div className="h-fit">
-    {/* <label htmlFor={id} className="block text-sm font-medium">
-      {label}
-    </label> */}
+  <div className="flex h-fit flex-col gap-1.5">
+    {label && <Label htmlFor={id}>{label}</Label>}
     <Input
-      className=""
       disabled={Boolean(disabled)}
       id={id}
-      label={label}
       placeholder={placeholder}
       type={type}
       value={value !== undefined ? String(value) : ""}

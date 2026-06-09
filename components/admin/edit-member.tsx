@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import { format } from "date-fns";
 
 import Loader from "../elements/Loader";
@@ -15,7 +15,7 @@ import {
 
 const EditAdmin = () => {
   const router = useRouter();
-  const query = router.query;
+  const query = router?.query ?? {};
   const [loading, setLoading] = useState(true);
   const [installments] = useState([]);
   const [status, setStatus] = useState("draft");
@@ -185,13 +185,9 @@ const EditAdmin = () => {
     let res: any;
 
     if (status == "draft") {
-      res = await createMember(data)
-        .then((res) => res)
-        .catch((err) => err);
+      res = await createMember(data);
     } else {
-      res = await updateMember(id, data)
-        .then((res) => res)
-        .catch((err) => err);
+      res = await updateMember(id, data);
     }
 
     return res;
