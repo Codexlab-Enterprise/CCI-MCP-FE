@@ -78,6 +78,9 @@ function memberToForm(m: any = {}, installmentsList = []) {
     memberShipId: normalizeCode(items?.secondry_membership_ID),
     nationality: items?.nationality || "",
     subType: items?.membership_Type || { id: "", label: "" },
+    associatedMemberName: items?.associated_member_name || "",
+    secondaryCodeName: items?.secondary_code_name || "",
+    proposalCodeName: items?.proposal_code_name || "",
     installments: items?.Number_of_installment ?? "",
     amount: items?.membership_Amount ?? 0,
     dateOfInstallment: fmt(items?.first_installment_data),
@@ -116,6 +119,9 @@ const INITIAL_FORM = {
   image: "",
   amount: 0,
   received_date: "",
+  associatedMemberName: "",
+  secondaryCodeName: "",
+  proposalCodeName: "",
 };
 
 /** -------------------------------

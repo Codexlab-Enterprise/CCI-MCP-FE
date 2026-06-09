@@ -80,6 +80,16 @@ interface Props {
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
 }
+
+const formatCodeAndName = (code?: string, name?: string) => {
+  const cleanCode = String(code ?? "").trim();
+  const cleanName = String(name ?? "").trim();
+
+  if (cleanCode && cleanName) return `${cleanCode} - ${cleanName}`;
+
+  return cleanCode || cleanName || "";
+};
+
 const ViewForm: React.FC<Props> = ({
   formData,
   setFormData,
@@ -1418,15 +1428,24 @@ const ViewForm: React.FC<Props> = ({
               <InfoRow
                 label="Associated Member"
                 icon={<Users className="h-3.5 w-3.5" />}
-                value={formData.associatedMember}
+                value={formatCodeAndName(
+                  formData.associatedMember,
+                  formData.associatedMemberName,
+                )}
               />
               <InfoRow
                 label="Secondary Code"
-                value={formData.secondarCode}
+                value={formatCodeAndName(
+                  formData.secondarCode,
+                  formData.secondaryCodeName,
+                )}
               />
               <InfoRow
                 label="Proposal Code"
-                value={formData.proposalCode}
+                value={formatCodeAndName(
+                  formData.proposalCode,
+                  formData.proposalCodeName,
+                )}
               />
               {formData.secondaryPermaentID &&
                 formData.secondaryPermaentID !== "N/A" && (
