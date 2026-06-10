@@ -66,6 +66,7 @@ import {
   gettrnsactions,
   interestCalculate,
   refreshCalculateInterest,
+  recalculateInstallments,
   splitInstallment,
   update_transaction,
   updateInstallments,
@@ -117,6 +118,7 @@ const ViewForm: React.FC<Props> = ({
   const [transactions, setTransactions] = useState<any>([]);
   const [installmentSummary, setInstallmentSummary] = useState<any>(null);
   const [isInstallmentLoading, setIsInstallmentLoading] = useState(false);
+  const [isRecalculateLoading, setIsRecalculateLoading] = useState(false);
   const [isAssignBelletOpen, setIsAssignBelletOpen] = useState(false);
   const [belletDate, setBelletDate] = useState<any>(null);
   const [permanentmembershipId, setpermanentMembershipId] = useState("");
@@ -946,6 +948,36 @@ const ViewForm: React.FC<Props> = ({
     }
   };
 
+  const handleRecalculateInstallments = async () => {
+    if (!formData.memberShipId) {
+      toast.error("Member ID is missing");
+      return;
+    }
+
+    setIsRecalculateLoading(true);
+    const toastId = toast.loading("Recalculating installments...");
+
+    try {
+      const response = await recalculateInstallments(formData.memberShipId);
+
+      if (response.status === 200 || response.status === 201) {
+        await fetchInstallments();
+        toast.success("Installments recalculated successfully", { id: toastId });
+      } else {
+        throw new Error(response.data?.message || "Failed to recalculate installments");
+      }
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Error recalculating installments",
+        { id: toastId }
+      );
+    } finally {
+      setIsRecalculateLoading(false);
+    }
+  };
+
   const handleViewReceipts = (installment: any) => {
     try {
 
@@ -1490,7 +1522,15 @@ const ViewForm: React.FC<Props> = ({
                   </Button> */}
 
 
-                  <div className="flex gap-1">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="border-blue-200 text-blue-700 hover:bg-blue-50 place-content-center"
+                      disabled={isRecalculateLoading}
+                      onClick={handleRecalculateInstallments}
+                    >
+                      {isRecalculateLoading ? "Recalculating..." : "Recalculate Installments"}
+                    </Button>
                     <Button
                       className="bg-blue-500 text-white hover:bg-blue-600 place-content-center"
                       onClick={handleOpenSplitModal}

@@ -338,6 +338,25 @@ export const refreshCalculateInterest = async (memberShipID: String) => {
   return res; 
 };
 
+export const recalculateInstallments = async (memberId: String) => {
+  const access = JSON.parse(Cookies.get("user")).accessToken;
+  const res = await api
+    .post(
+      `/v1/installments/members/${memberId}/installments/recalculate`,
+      "{}",
+      {
+        headers: {
+          Authorization: `Bearer ${access}`,
+          "Content-Type": "text/plain",
+        },
+      },
+    )
+    .then((res) => res)
+    .catch((err) => err);
+
+  return res;
+};
+
 // Add this to your API service file
 export const updateInstallments = async (installmentId: number, updateData: { amount?: number; dueDate?: string }) => {
   try {
