@@ -338,6 +338,68 @@ export const refreshCalculateInterest = async (memberShipID: String) => {
   return res; 
 };
 
+/** Recalculate + PERSIST a single installment (POST). Skips if no transactions. */
+export const recalcInstallment = async (installmentID: Number, asOf?: string | null) => {
+  const access = JSON.parse(Cookies.get("user")!).accessToken;
+  const res = await api
+    .post(
+      `/v1/installments/installments/${installmentID}/recalculate`,
+      { asOf: asOf ?? null },
+      { headers: { Authorization: `Bearer ${access}` } },
+    )
+    .then((res) => res)
+    .catch((err) => err);
+
+  return res;
+};
+
+/** Recalculate + PERSIST every installment for a member (POST). */
+export const recalcMemberInstallments = async (memberShipID: String, asOf?: string | null) => {
+  const access = JSON.parse(Cookies.get("user")!).accessToken;
+  const res = await api
+    .post(
+      `/v1/installments/members/${memberShipID}/installments/recalculate`,
+      { asOf: asOf ?? null },
+      { headers: { Authorization: `Bearer ${access}` } },
+    )
+    .then((res) => res)
+    .catch((err) => err);
+
+  return res;
+};
+
+/** Start the batch "recalculate ALL members" job (POST). Returns { jobId, pollUrl }. */
+export const recalcAllMembers = async (opts?: { persist?: boolean; concurrency?: number; asOf?: string | null }) => {
+  const access = JSON.parse(Cookies.get("user")!).accessToken;
+  const res = await api
+    .post(
+      `/v1/installments/recalculate-all`,
+      {
+        persist: opts?.persist ?? true,
+        concurrency: opts?.concurrency ?? 8,
+        asOf: opts?.asOf ?? null,
+      },
+      { headers: { Authorization: `Bearer ${access}` } },
+    )
+    .then((res) => res)
+    .catch((err) => err);
+
+  return res;
+};
+
+/** Poll a batch recalc job's progress (GET). */
+export const recalcAllProgress = async (jobId: string) => {
+  const access = JSON.parse(Cookies.get("user")!).accessToken;
+  const res = await api
+    .get(`/v1/installments/recalculate-all/${jobId}`, {
+      headers: { Authorization: `Bearer ${access}` },
+    })
+    .then((res) => res)
+    .catch((err) => err);
+
+  return res;
+};
+
 // Add this to your API service file
 export const updateInstallments = async (installmentId: number, updateData: { amount?: number; dueDate?: string }) => {
   try {

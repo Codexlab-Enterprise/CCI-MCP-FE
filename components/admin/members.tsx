@@ -29,7 +29,13 @@ import DeleteModal from "@/components/DeleteModal";
 import SmartTable from "@/components/SmartTable";
 
 import Section from "@/components/elements/Section";
-import { deleteMember, getMembers, importData } from "@/api/members";
+import {
+  deleteMember,
+  getMembers,
+  importData,
+  recalcAllMembers,
+  recalcAllProgress,
+} from "@/api/members";
 
 import Link from "next/link";
 
@@ -535,6 +541,60 @@ const Members = () => {
     }
   };
 
+  // ── Recalculate ALL members (batch job + progress polling) ───────────────
+  const [isRecalcAll, setIsRecalcAll] = useState(false);
+
+  const handleRecalcAll = async () => {
+    if (isRecalcAll) return;
+    if (
+      !window.confirm(
+        "Recalculate and persist installments for ALL members? This updates the database.",
+      )
+    )
+      return;
+
+    setIsRecalcAll(true);
+    const toastId = toast.loading("Starting recalculation for all members...");
+    try {
+      const start = await recalcAllMembers({ persist: true, concurrency: 8 });
+      const jobId = start?.data?.jobId;
+      if (!jobId) {
+        toast.error(start?.data?.error || "Failed to start recalculation", { id: toastId });
+        setIsRecalcAll(false);
+        return;
+      }
+
+      // Poll progress until the job completes.
+      const poll = async () => {
+        const res = await recalcAllProgress(jobId);
+        const job = res?.data;
+        if (!job?.ok) {
+          toast.error("Lost track of the recalculation job", { id: toastId });
+          setIsRecalcAll(false);
+          return;
+        }
+        const p = job.progress || {};
+        if (job.status === "completed") {
+          const msg = `Recalculation done — ${job.succeeded} ok, ${job.failed} failed (${p.total} members)`;
+          job.failed
+            ? toast.error(msg, { id: toastId })
+            : toast.success(msg, { id: toastId });
+          setIsRecalcAll(false);
+          return;
+        }
+        toast.loading(
+          `Recalculating... ${p.processed ?? 0}/${p.total ?? 0} (${p.percent ?? 0}%)`,
+          { id: toastId },
+        );
+        setTimeout(poll, 1500);
+      };
+      poll();
+    } catch (e) {
+      toast.error("Error recalculating members", { id: toastId });
+      setIsRecalcAll(false);
+    }
+  };
+
   const handleImport = async () => {
     inputRef.current.click();
   };
@@ -580,12 +640,12 @@ const Members = () => {
           ExtraButtonCode={
             <div className="flex items-center gap-2">
               <Button
-                className="bg-blue-500 py-7 text-white hover:bg-blue-600"
+                className="h-11 gap-2 rounded-lg bg-blue-500 px-4 text-white shadow-sm hover:bg-blue-600"
                 onClick={() => {
                   window.location.href = "/members/add";
                 }}
               >
-                <Plus className="w-5 block h-5" />
+                <Plus className="block h-5 w-5" />
                 <span className="hidden lg:block">Add Member</span>
               </Button>
               <input
@@ -596,24 +656,34 @@ const Members = () => {
                 onChange={handleFileChange}
               />
               <Button
-                className="bg-black py-7 text-white hover:bg-black/80"
+                className="h-11 gap-2 rounded-lg bg-gray-900 px-4 text-white shadow-sm hover:bg-gray-800"
                 onClick={handleImport}
               >
-                <Import className="w-5 block h-5" />
+                <Import className="block h-5 w-5" />
                 <span className="hidden lg:block">Import CSV</span>
               </Button>
               <Button
-                className="py-7 bg-green-600 text-white hover:bg-green-700"
+                className="h-11 gap-2 rounded-lg bg-green-600 px-4 text-white shadow-sm hover:bg-green-700"
                 onClick={handleExport}
               >
-                <FaFileExport className="w-5 h-5 block" />
+                <FaFileExport className="block h-5 w-5" />
                 <span className="hidden lg:block">Export</span>
+              </Button>
+              <Button
+                className="h-11 gap-2 rounded-lg bg-emerald-700 px-4 text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
+                onClick={handleRecalcAll}
+                disabled={isRecalcAll}
+              >
+                <Loader2 className={cn("block h-5 w-5", isRecalcAll && "animate-spin")} />
+                <span className="hidden lg:block">
+                  {isRecalcAll ? "Recalculating..." : "Recalc All"}
+                </span>
               </Button>
             </div>
           }
           ExtraCode={
             <>
-              <div className="mb-5 grid grid-cols-1 md:grid-cols-3 gap-2 lg:gap-10">
+              <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <SearchableDropdown
                   handleChange={(option) =>
                     updateFilter("membership", String(option.id))
@@ -706,6 +776,7 @@ const Members = () => {
               />
               <div className="flex items-center gap-2">
                 <button
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={filters.page === 1}
                   onClick={() => {
                     // Always allow going to previous page if not on first page
@@ -718,7 +789,7 @@ const Members = () => {
                 </button>
 
                 <input
-                  className="w-10 text-center border py-2 rounded border-gray-400"
+                  className="h-9 w-12 rounded-lg border border-gray-300 text-center focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   min={1}
                   type="number"
                   value={
@@ -755,6 +826,7 @@ const Members = () => {
                 />
 
                 <button
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                   onClick={() => {
                     // Remove the filters.page > 1 condition - this was the main issue
                     // Always allow going to next page

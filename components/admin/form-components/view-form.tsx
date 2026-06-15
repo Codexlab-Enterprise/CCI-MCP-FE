@@ -65,6 +65,8 @@ import {
   getInstallments,
   gettrnsactions,
   interestCalculate,
+  recalcInstallment,
+  recalcMemberInstallments,
   refreshCalculateInterest,
   splitInstallment,
   update_transaction,
@@ -605,6 +607,62 @@ const ViewForm: React.FC<Props> = ({
 
     // Debounced API call
     debouncedAmountUpdate(installmentId, newAmount);
+  };
+
+  // ── Recalculate (persist) handlers ───────────────────────────────────────
+  const [recalcingId, setRecalcingId] = useState<number | null>(null);
+  const [isRecalcMember, setIsRecalcMember] = useState(false);
+
+  // Recalculate + persist a single installment
+  const handleRecalcInstallment = async (installmentId: number) => {
+    setRecalcingId(installmentId);
+    const toastId = toast.loading("Recalculating installment...");
+    try {
+      const res = await recalcInstallment(installmentId);
+      if (res?.status === 200 && res?.data?.ok) {
+        if (res.data.skipped) {
+          toast.success("Skipped — installment has no transactions", { id: toastId });
+        } else {
+          toast.success("Installment recalculated", { id: toastId });
+        }
+        await fetchInstallments();
+      } else {
+        toast.error(res?.data?.error || "Failed to recalculate installment", { id: toastId });
+      }
+    } catch (e) {
+      toast.error("Error recalculating installment", { id: toastId });
+    } finally {
+      setRecalcingId(null);
+    }
+  };
+
+  // Recalculate + persist all installments for the current member
+  const handleRecalcMember = async () => {
+    setIsRecalcMember(true);
+    const toastId = toast.loading("Recalculating all installments...");
+    try {
+      const res = await recalcMemberInstallments(formData.memberShipId);
+      // 200 = all good, 207 = some installments failed but the rest persisted
+      if (res?.status === 200 || res?.status === 207) {
+        const totals = res?.data?.totals;
+        const skipped = totals?.SkippedInstallmentCount ?? 0;
+        const failed = totals?.FailedInstallmentCount ?? 0;
+        const msg =
+          `Recalculated ${totals?.InstallmentCount ?? ""} installment(s)` +
+          (skipped ? `, ${skipped} skipped` : "") +
+          (failed ? `, ${failed} failed` : "");
+        failed
+          ? toast.error(msg, { id: toastId })
+          : toast.success(msg, { id: toastId });
+        await fetchInstallments();
+      } else {
+        toast.error(res?.data?.error || "Failed to recalculate member", { id: toastId });
+      }
+    } catch (e) {
+      toast.error("Error recalculating member", { id: toastId });
+    } finally {
+      setIsRecalcMember(false);
+    }
   };
 
   // Optional: Handle amount change on blur instead of every keystroke
@@ -1497,6 +1555,13 @@ const ViewForm: React.FC<Props> = ({
                     >
                       Split Installments
                     </Button>
+                    <Button
+                      className="bg-emerald-600 text-white hover:bg-emerald-700 place-content-center"
+                      onClick={handleRecalcMember}
+                      disabled={isRecalcMember}
+                    >
+                      {isRecalcMember ? "Recalculating..." : "Recalculate Installments"}
+                    </Button>
                   </div>
 
                 </div>
@@ -1552,6 +1617,9 @@ const ViewForm: React.FC<Props> = ({
                         <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
                           Status
                         </th>
+                        <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
+                          Action
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1559,7 +1627,7 @@ const ViewForm: React.FC<Props> = ({
                         <tr>
                           <td
                             className="px-2 py-10 text-center text-sm text-gray-500"
-                            colSpan={15}
+                            colSpan={16}
                           >
                             <div className="flex items-center justify-center gap-3">
                               <Spinner size="sm" />
@@ -1782,6 +1850,25 @@ const ViewForm: React.FC<Props> = ({
                                     {installment.Status}
                                   </span>
                                 </td>
+                                <td className="px-2 py-3 text-center">
+                                  <button
+                                    type="button"
+                                    className={cn(
+                                      "px-2 py-1 rounded-md text-xs font-medium border transition-colors",
+                                      recalcingId === installment.InstallmentId
+                                        ? "bg-emerald-100 text-emerald-700 border-emerald-200 cursor-wait"
+                                        : "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700",
+                                    )}
+                                    disabled={recalcingId === installment.InstallmentId}
+                                    onClick={() =>
+                                      handleRecalcInstallment(installment.InstallmentId)
+                                    }
+                                  >
+                                    {recalcingId === installment.InstallmentId
+                                      ? "..."
+                                      : "Recalculate"}
+                                  </button>
+                                </td>
                               </tr>
                             );
                           },
@@ -1790,7 +1877,7 @@ const ViewForm: React.FC<Props> = ({
                         <tr>
                           <td
                             className="px-2 py-10 text-center text-gray-500"
-                            colSpan={15}
+                            colSpan={16}
                           >
                             No installments available
                           </td>

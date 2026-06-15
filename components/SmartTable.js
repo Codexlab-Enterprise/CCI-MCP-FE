@@ -21,8 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-import { subtitle, title } from "./primitives";
-
 export const SearchIcon = (props) => {
   return (
     <svg
@@ -108,18 +106,22 @@ const SmartTables = ({
       {isHeaderVisible ? (
         <section className="flex sm:block flex-col items-center justify-between gap-2 py-5 md:py-5">
           <div className="container">
-            <div className="block md:flex gap-2 items-center justify-between px-2">
-              <div>
-                <h1 className={title()}>{pageTitle}</h1>
-                <h3 className={subtitle()}>{pagePreTitle}</h3>
+            <div className="flex flex-col gap-4 px-2 lg:flex-row lg:items-center lg:justify-between">
+              <div className="shrink-0">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 lg:text-4xl">
+                  {pageTitle}
+                </h1>
+                {pagePreTitle ? (
+                  <h3 className="mt-1 text-sm text-gray-500">{pagePreTitle}</h3>
+                ) : null}
               </div>
-              <div className="flex flex-col lg:flex-row gap-2">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
                 {isSearchable ? (
-                  <div className="flex flex-col lg:flex-row gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <div className="relative">
                       <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <Input
-                        className="pl-9"
+                        className="h-11 w-full pl-9 sm:w-56 lg:w-60"
                         placeholder={
                           searchLabel != undefined ? searchLabel : "Search"
                         }
@@ -139,7 +141,7 @@ const SmartTables = ({
                       <div className="relative">
                         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                          className="pl-9"
+                          className="h-11 w-full pl-9 sm:w-56 lg:w-60"
                           placeholder={
                             secondarySearchLabel != undefined
                               ? secondarySearchLabel
@@ -154,7 +156,7 @@ const SmartTables = ({
                     ) : null}
                   </div>
                 ) : null}
-                <div className="flex lg:items-center lg:justify-center flex-col lg:flex-row gap-1">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   {ExtraButtonCode ? ExtraButtonCode : null}
                   {buttonName != "" ? (
                     <Button
@@ -180,83 +182,90 @@ const SmartTables = ({
 
       <section className="container">
         {ExtraCode !== undefined ? ExtraCode : <></>}
-        <ScrollArea className="lg:max-w-[80vw]">
-          <Table {...getTableProps()}>
-            {headerGroups.map((headerGroup, idx) => (
-              <TableHeader
-                className="relative z-10"
-                {...headerGroup.getHeaderGroupProps()}
-                key={idx}
-              >
-                <TableRow>
-                  {headerGroup.headers
-                    .filter((column) => column.show !== false)
-                    .map((column) => (
-                      <TableHead
-                        {...column.getHeaderProps(
-                          column.getSortByToggleProps
-                            ? column.getSortByToggleProps()
-                            : undefined,
-                        )}
-                        key={column.id}
-                        className="relative z-20"
-                      >
-                        {column.render("Header")}
-                        {column.isSorted
-                          ? column.isSortedDesc
-                            ? " ▼"
-                            : " ▲"
-                          : ""}
-                      </TableHead>
-                    ))}
-                </TableRow>
-              </TableHeader>
-            ))}
-            <TableBody {...getTableBodyProps()}>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="text-center py-10"
-                  >
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
-                  </TableCell>
-                </TableRow>
-              ) : page.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="text-center py-10 text-muted-foreground"
-                  >
-                    No rows to display.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                page.map((row, key) => {
-                  prepareRow(row);
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <ScrollArea className="lg:max-w-[80vw]">
+            <Table {...getTableProps()}>
+              {headerGroups.map((headerGroup, idx) => (
+                <TableHeader
+                  className="relative z-10 bg-gray-50/80"
+                  {...headerGroup.getHeaderGroupProps()}
+                  key={idx}
+                >
+                  <TableRow className="border-b border-gray-200 hover:bg-transparent">
+                    {headerGroup.headers
+                      .filter((column) => column.show !== false)
+                      .map((column) => (
+                        <TableHead
+                          {...column.getHeaderProps(
+                            column.getSortByToggleProps
+                              ? column.getSortByToggleProps()
+                              : undefined,
+                          )}
+                          key={column.id}
+                          className="relative z-20 h-11 whitespace-nowrap px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                        >
+                          {column.render("Header")}
+                          {column.isSorted
+                            ? column.isSortedDesc
+                              ? " ▼"
+                              : " ▲"
+                            : ""}
+                        </TableHead>
+                      ))}
+                  </TableRow>
+                </TableHeader>
+              ))}
+              <TableBody {...getTableBodyProps()}>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="text-center py-12"
+                    >
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+                    </TableCell>
+                  </TableRow>
+                ) : page.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="text-center py-12 text-muted-foreground"
+                    >
+                      No rows to display.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  page.map((row, key) => {
+                    prepareRow(row);
 
-                  return (
-                    <TableRow {...row.getRowProps()} key={key}>
-                      {row.cells
-                        .filter((cell) => cell.column.show !== false)
-                        .map((cell, cellKey) => (
-                          <TableCell
-                            {...cell.getCellProps()}
-                            key={cellKey}
-                          >
-                            {cell.render("Cell")}
-                          </TableCell>
-                        ))}
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+                    return (
+                      <TableRow
+                        {...row.getRowProps()}
+                        key={key}
+                        className="border-b border-gray-100 transition-colors last:border-0 hover:bg-blue-50/40"
+                      >
+                        {row.cells
+                          .filter((cell) => cell.column.show !== false)
+                          .map((cell, cellKey) => (
+                            <TableCell
+                              {...cell.getCellProps()}
+                              key={cellKey}
+                              className="px-4 py-3.5 text-sm text-gray-700"
+                            >
+                              {cell.render("Cell")}
+                            </TableCell>
+                          ))}
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
         {bottomContent ? (
-          <div className="flex justify-end mt-3">{bottomContent}</div>
+          <div className="flex justify-end mt-4">{bottomContent}</div>
         ) : null}
       </section>
     </>
