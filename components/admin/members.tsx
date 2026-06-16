@@ -543,6 +543,7 @@ const Members = () => {
 
   // ── Recalculate ALL members (batch job + progress polling) ───────────────
   const [isRecalcAll, setIsRecalcAll] = useState(false);
+  const [recalcAllError, setRecalcAllError] = useState<string | null>(null);
 
   const handleRecalcAll = async () => {
     if (isRecalcAll) return;
@@ -554,15 +555,26 @@ const Members = () => {
       return;
 
     setIsRecalcAll(true);
-    const toastId = toast.loading("Starting recalculation for all members...");
+    setRecalcAllError(null);
+    let toastId = "";
     try {
       const start = await recalcAllMembers({ persist: true, concurrency: 8 });
       const jobId = start?.data?.jobId;
       if (!jobId) {
-        toast.error(start?.data?.error || "Failed to start recalculation", { id: toastId });
+        setRecalcAllError(start?.data?.error || "Failed to start recalculation");
         setIsRecalcAll(false);
         return;
       }
+
+      const toastId = "";
+      const targetUrl = `/members/recalculate-all?jobId=${encodeURIComponent(jobId)}`;
+      if (router?.push) {
+        await router.push(targetUrl);
+      } else if (typeof window !== "undefined") {
+        window.location.assign(targetUrl);
+      }
+      setIsRecalcAll(false);
+      return;
 
       // Poll progress until the job completes.
       const poll = async () => {
@@ -590,7 +602,7 @@ const Members = () => {
       };
       poll();
     } catch (e) {
-      toast.error("Error recalculating members", { id: toastId });
+      setRecalcAllError("Error starting recalculation");
       setIsRecalcAll(false);
     }
   };
@@ -638,6 +650,7 @@ const Members = () => {
       <div className="w-full ">
         <SmartTable
           ExtraButtonCode={
+            <>
             <div className="flex items-center gap-2">
               <Button
                 className="h-11 gap-2 rounded-lg bg-blue-500 px-4 text-white shadow-sm hover:bg-blue-600"
@@ -669,7 +682,7 @@ const Members = () => {
                 <FaFileExport className="block h-5 w-5" />
                 <span className="hidden lg:block">Export</span>
               </Button>
-              <Button
+              {/* <Button
                 className="h-11 gap-2 rounded-lg bg-emerald-700 px-4 text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
                 onClick={handleRecalcAll}
                 disabled={isRecalcAll}
@@ -678,8 +691,12 @@ const Members = () => {
                 <span className="hidden lg:block">
                   {isRecalcAll ? "Recalculating..." : "Recalc All"}
                 </span>
-              </Button>
+              </Button> */}
             </div>
+            {recalcAllError && (
+              <p className="mt-3 text-sm font-medium text-red-600">{recalcAllError}</p>
+            )}
+            </>
           }
           ExtraCode={
             <>
