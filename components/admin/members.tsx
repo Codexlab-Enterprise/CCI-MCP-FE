@@ -682,7 +682,7 @@ const Members = () => {
                 <FaFileExport className="block h-5 w-5" />
                 <span className="hidden lg:block">Export</span>
               </Button>
-              {/* <Button
+              <Button
                 className="h-11 gap-2 rounded-lg bg-emerald-700 px-4 text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
                 onClick={handleRecalcAll}
                 disabled={isRecalcAll}
@@ -691,7 +691,7 @@ const Members = () => {
                 <span className="hidden lg:block">
                   {isRecalcAll ? "Recalculating..." : "Recalc All"}
                 </span>
-              </Button> */}
+              </Button>
             </div>
             {recalcAllError && (
               <p className="mt-3 text-sm font-medium text-red-600">{recalcAllError}</p>

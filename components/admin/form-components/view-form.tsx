@@ -269,6 +269,7 @@ const ViewForm: React.FC<Props> = ({
       const res = await getInstallments(access, formData.memberShipId);
 
       if (res.status === 200 && Array.isArray(res.data.data.rows)) {
+        const apiTotals = res.data?.data?.totals ?? res.data?.totals ?? null;
         const mappedInstallments = res.data.data.rows.map((item: any) => {
           const dueDate = item.DueDate ? new Date(item.DueDate) : null;
 
@@ -321,7 +322,22 @@ const ViewForm: React.FC<Props> = ({
         }));
 
         const summary = calculateSummary(mappedInstallments);
-        setInstallmentSummary(summary);
+        setInstallmentSummary({
+          ...summary,
+          totalPaid: apiTotals?.TotalPrincipalPaid ?? summary.totalPaid,
+          totalOutstanding:
+            apiTotals?.TotalPrincipalOutstanding ?? summary.totalOutstanding,
+          outstandingTillDate: summary.outstandingTillDate,
+          totalInterest:
+            apiTotals?.TotalInterestAccrued ?? summary.totalInterest,
+          totalGST: apiTotals?.TotalGSTAccrued ?? summary.totalGST,
+          totalInstallments:
+            apiTotals?.InstallmentCount ?? summary.totalInstallments,
+          overdueCount: apiTotals?.OverdueCount ?? 0,
+          grandTotalOutstanding:
+            apiTotals?.GrandTotalOutstanding ?? summary.totalOutstanding,
+          rawTotals: apiTotals,
+        });
       }
     } catch (error) {
       toast.error("Failed to load installment schedule");
@@ -1249,10 +1265,7 @@ const ViewForm: React.FC<Props> = ({
   };
 
   const isFullyPaid = installmentSummary?.totalOutstanding === 0;
-  const pendingAmount = Math.max(
-    0,
-    Number(formData.amount || 0) - Number(paidAmount || 0),
-  );
+  const pendingAmount = Number(installmentSummary?.totalOutstanding ?? 0);
 
   const fullName = [formData.firstName, formData.midName, formData.lastname]
     .filter(Boolean)
@@ -1906,7 +1919,7 @@ const ViewForm: React.FC<Props> = ({
                   Total Paid Amount
                 </p>
                 <p className="text-xl font-bold">
-                  ₹{paidAmount}
+                  ₹{(installmentSummary?.totalPaid ?? paidAmount).toLocaleString("en-IN")}
                 </p>
               </div>
 
