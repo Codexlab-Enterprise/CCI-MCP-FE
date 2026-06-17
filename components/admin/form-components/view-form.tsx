@@ -1633,6 +1633,9 @@ const ViewForm: React.FC<Props> = ({
                         <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
                           Action
                         </th>
+                        <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
+                          Recalculate
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1640,7 +1643,7 @@ const ViewForm: React.FC<Props> = ({
                         <tr>
                           <td
                             className="px-2 py-10 text-center text-sm text-gray-500"
-                            colSpan={16}
+                            colSpan={17}
                           >
                             <div className="flex items-center justify-center gap-3">
                               <Spinner size="sm" />
@@ -1666,8 +1669,10 @@ const ViewForm: React.FC<Props> = ({
                                 )}
                               >
                                 <td className="px-2 py-3 text-center">
-                                  {/* {installment.InstallmentId} */}
-                                  {/* {index + 1} */}
+                                  {index + 1}
+                                </td>
+
+                                <td className="px-2 py-3 text-center">
                                   {installment.Label}
                                 </td>
 
