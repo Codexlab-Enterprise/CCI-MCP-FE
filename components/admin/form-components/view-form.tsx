@@ -1584,6 +1584,7 @@ const ViewForm: React.FC<Props> = ({
                   <table className="  text-sm  text-left border-collapse ">
                     <thead className="bg-gray-100  text-gray-700 text-sm font-medium sticky top-0 z-20 ">
                       <tr>
+                        <th className="px-2 py-3 border-b w-12">Sr. No</th>
                         <th className="px-2 py-3 border-b w-12">#</th>
                         <th className="px-2 py-3 border-b w-36 whitespace-normal">
                           Installment Due
@@ -1633,9 +1634,9 @@ const ViewForm: React.FC<Props> = ({
                         <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
                           Action
                         </th>
-                        <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
+                        {/* <th className="px-2 py-3 border-b text-center w-24 whitespace-normal">
                           Recalculate
-                        </th>
+                        </th> */}
                       </tr>
                     </thead>
                     <tbody>
