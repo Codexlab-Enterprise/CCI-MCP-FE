@@ -482,6 +482,8 @@ const Members = () => {
   //  import axios from 'axios';
 
   const handleExport = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
     const toastId = toast.loading("Exporting...");
     const normalizeNullable = (value: any) =>
       value === "" || value === undefined ? null : value;
@@ -538,12 +540,15 @@ const Members = () => {
       } else {
         toast.error("Failed to export members", { id: toastId });
       }
+    } finally {
+      setIsExporting(false);
     }
   };
 
   // ── Recalculate ALL members (batch job + progress polling) ───────────────
   const [isRecalcAll, setIsRecalcAll] = useState(false);
   const [recalcAllError, setRecalcAllError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleRecalcAll = async () => {
     if (isRecalcAll) return;
@@ -676,11 +681,18 @@ const Members = () => {
                 <span className="hidden lg:block">Import CSV</span>
               </Button>
               <Button
-                className="h-11 gap-2 rounded-lg bg-green-600 px-4 text-white shadow-sm hover:bg-green-700"
+                className="h-11 gap-2 rounded-lg bg-green-600 px-4 text-white shadow-sm hover:bg-green-700 disabled:opacity-60"
                 onClick={handleExport}
+                disabled={isExporting}
               >
-                <FaFileExport className="block h-5 w-5" />
-                <span className="hidden lg:block">Export</span>
+                {isExporting ? (
+                  <Loader2 className="block h-5 w-5 animate-spin" />
+                ) : (
+                  <FaFileExport className="block h-5 w-5" />
+                )}
+                <span className="hidden lg:block">
+                  {isExporting ? "Exporting..." : "Export"}
+                </span>
               </Button>
               <Button
                 className="h-11 gap-2 rounded-lg bg-emerald-700 px-4 text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
