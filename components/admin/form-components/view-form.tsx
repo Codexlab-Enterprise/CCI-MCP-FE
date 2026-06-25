@@ -325,6 +325,10 @@ const ViewForm: React.FC<Props> = ({
         setInstallmentSummary({
           ...summary,
           totalPaid: apiTotals?.TotalPrincipalPaid ?? summary.totalPaid,
+          grandTotalPaid:
+            (apiTotals?.TotalPrincipalPaid ?? 0) +
+            (apiTotals?.TotalInterestPaid ?? 0) +
+            (apiTotals?.TotalGSTPaid ?? 0),
           totalOutstanding:
             apiTotals?.TotalPrincipalOutstanding ?? summary.totalOutstanding,
           outstandingTillDate: summary.outstandingTillDate,
@@ -380,12 +384,28 @@ const ViewForm: React.FC<Props> = ({
     );
     const totalGST = installments.reduce((sum, item) => sum + item.GSTAccrued, 0);
 
+    // Paid components: principal + interest + GST actually paid (mirrors GrandTotalOutstanding)
+    const interestPaid = installments.reduce(
+      (sum, item) => sum + (Number(item.InterestPaid) || 0),
+      0,
+    );
+    const gstPaid = installments.reduce(
+      (sum, item) => sum + (Number(item.GSTPaid) || 0),
+      0,
+    );
+
+    const grandTotalPaid = totalPaid + interestPaid + gstPaid;
+    // item.TotalOutstanding already = principal + interest + GST outstanding, so its sum is the grand total
+    const grandTotalOutstanding = totalOutstanding;
+
     return {
       totalPaid,
       totalOutstanding,
       outstandingTillDate,
       totalInterest,
       totalGST,
+      grandTotalPaid,
+      grandTotalOutstanding,
       totalInstallments: installments.length,
       paidInstallments: installments.filter(item => item.Status === "PAID").length,
       pendingInstallments: installments.filter(item => item.Status === "PENDING").length,
@@ -1925,7 +1945,7 @@ const ViewForm: React.FC<Props> = ({
                   Total Paid Amount
                 </p>
                 <p className="text-xl font-bold">
-                  ₹{(installmentSummary?.totalPaid ?? paidAmount).toLocaleString("en-IN")}
+                  ₹{(installmentSummary?.grandTotalPaid ?? paidAmount).toLocaleString("en-IN")}
                 </p>
               </div>
 
